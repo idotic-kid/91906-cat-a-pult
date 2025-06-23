@@ -5,6 +5,7 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Cat-a-pult!"
 clicked_buttons = {"play":False}
+screen_history = []
 
 class GameView(arcade.Window):
     """
@@ -46,6 +47,18 @@ class GameView(arcade.Window):
         self.back_button.center_x = 50
         self.back_button.center_y = WINDOW_HEIGHT-50
         self.button_list.append(self.back_button)
+
+    # This is an IMPORTANT FUNCTION !!!!!!!!!!!!!!!!!!!!!!!!! (i made it)
+    def change_scene(self, is_menu=False, screen_id=1):
+        '''Call this function to change the 'level'. Switches to a different pre-programmed level.
+        Arguments:
+            is_menu (bool) I think this one is self-explanatory.
+            screen_id (int) eg. 2 These are for me to code in. 1 is home 2 is settings 3 is pause
+        '''
+        if is_menu:
+            pass
+        else:
+            pass
 
     
     def on_mouse_motion(self, x, y, dx, dy):
