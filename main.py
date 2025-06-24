@@ -4,7 +4,6 @@ import arcade
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Cat-a-pult!"
-clicked_buttons = {"play":False}
 screen_history = []
 
 class GameView(arcade.Window):
@@ -23,8 +22,10 @@ class GameView(arcade.Window):
         
         #load buttons textures
         self.play_texture = arcade.load_texture("assets/button-play.png")
-        self.back_texture = arcade.load_texture("assets/button-back.png")
         self.current_screen = "none"
+
+        self.buttons_clicked = []
+
 
 
     def home(self):
@@ -42,45 +43,61 @@ class GameView(arcade.Window):
         self.button_list = arcade.SpriteList()
         self.button_list.append(self.play_button)
 
-    def level_select(self):
-        self.back_button = arcade.Sprite(self.back_texture)
-        self.back_button.center_x = 50
-        self.back_button.center_y = WINDOW_HEIGHT-50
-        self.button_list.append(self.back_button)
 
     # This is an IMPORTANT FUNCTION !!!!!!!!!!!!!!!!!!!!!!!!! (i made it)
     def change_scene(self, is_menu=False, screen_id=1):
         '''Call this function to change the 'level'. Switches to a different pre-programmed level.
         Arguments:
             is_menu (bool) I think this one is self-explanatory.
-            screen_id (int) eg. 2 These are for me to code in. 1 is home 2 is settings 3 is pause
+            screen_id (int) eg. 2 These are the screens for me to code in.
         '''
         if is_menu:
-            pass
+            # Menu 1 screen 1 (level select)
+            if screen_id == 1:
+                self.back_texture = arcade.load_texture("assets/button-back.png")
+                self.l_1_texture = arcade.load_texture("assets/button-level-1.png")
+                self.l_L_texture = arcade.load_texture("assets/button-level-locked.png")
+
+                self.back_button = arcade.Sprite(self.back_texture)
+                self.back_button.center_x = 50
+                self.back_button.center_y = WINDOW_HEIGHT-50
+
+
+                self.button_list.append(self.back_button)
+
+                
+
         else:
             pass
+    
+
 
     
     def on_mouse_motion(self, x, y, dx, dy):
             # Check if the mouse cursor collides with the button sprite
-            if self.back_button.collides_with_point((x, y)):
-                 self.back_button.scale = 1.1
-            else:
-                self.back_button.scale = 1.1
+            for button in self.button_list:
+                if button.collides_with_point((x, y)):
+                    button.scale = 1.1
+                else:
+                    button.scale = 1
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if self.back_button in self.button_list:
-            if button == arcade.MOUSE_BUTTON_LEFT:
-                if arcade.check_for_collision(self.play_button, arcade.Sprite(center_x=x, center_y=y, width=1, height=1)):
-                    clicked_buttons["play"]=True
-                    self.play_button.color = arcade.color.GREEN
+        if button == arcade.MOUSE_BUTTON_LEFT:
+            self.buttons_clicked = arcade.check_for_collision_with_list(arcade.Sprite(center_x=x, center_y=y, width=1, height=1), self.button_list)
+            for i in self.buttons_clicked:
+                i.scale = 0.8
+            
 
         
     def on_mouse_release(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
-            if clicked_buttons["play"]:
-                clicked_buttons["play"] = False
-                self.level_select()
+            print(self.buttons_clicked)
+            if self.play_button in self.buttons_clicked:
+                self.change_scene(True, 1)
+                self.play_button.kill()
+            if self.back_button in self.buttons_clicked:
+                self.home()
+            self.buttons_clicked = []
             self.play_button.color = 255, 255, 255
                 
 
@@ -93,8 +110,6 @@ class GameView(arcade.Window):
 
     def on_update(self, delta_time):
         pass
-
-
 
 
 
