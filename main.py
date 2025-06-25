@@ -1,4 +1,5 @@
 import arcade
+import math
 
 # Constants
 WINDOW_WIDTH = 1280
@@ -22,26 +23,31 @@ class GameView(arcade.Window):
         
         #load home screen buttons textures
         self.play_texture = arcade.load_texture("assets/button-play.png")
-        self.current_screen = "none"
 
+        self.buttons_hovered = []
         self.buttons_clicked = []
+
+        self.muffin_status = "none"
 
 
 
     def home(self):
         """Function for the home screen"""
 
-        # Make the play button sprite
         self.background_color = arcade.csscolor.BURLYWOOD
 
+        # Make the play button sprite
         self.play_button = arcade.Sprite(self.play_texture)
         self.play_button.center_x = WINDOW_WIDTH/2
         self.play_button.center_y = WINDOW_HEIGHT/2
 
 
         # Spritelist (I think this reduces lag?)
-        self.button_list = arcade.SpriteList()
+        self.button_list = arcade.SpriteList(True)
         self.button_list.append(self.play_button)
+        
+        self.player = arcade.SpriteList()
+        self.fish = arcade.SpriteList()
 
 
     # This is an IMPORTANT FUNCTION !!!!!!!!!!!!!!!!!!!!!!!!! (i made it)
@@ -51,6 +57,10 @@ class GameView(arcade.Window):
             is_menu (bool) I think this one is self-explanatory.
             screen_id (int) eg. 2 These are the screens for me to code in.
         '''
+        # Kill all buttons
+        for i in self.button_list:
+            i.kill()
+
         if is_menu:
             # Menu 1 screen 1 (level select)
             if screen_id == 1:
@@ -68,38 +78,63 @@ class GameView(arcade.Window):
 
 
                 self.button_list.append(self.back_button)
+                self.button_list.append(self.level1_button)
 
         else:
-            pass
-    
+            # Level 1
+            if screen_id ==1:
+                self.background_color = arcade.csscolor.AQUA
+                self.muffin = arcade.Sprite(self.muffin_texture)
+                self.muffin.center_x = 100
+                self.muffin.center_y = 100
+                self.muffin.scale = 0.7
+
+                self.player.append(self.muffin)
+                self.physics_engine = arcade.PhysicsEngineSimple(
+                    self.muffin
+                )
+
+
 
 
     
     def on_mouse_motion(self, x, y, dx, dy):
             # Check if the mouse cursor collides with the button sprite
-            for button in self.button_list:
-                if button.collides_with_point((x, y)):
-                    button.scale = 1.1
+            self.buttons_hovered = arcade.get_sprites_at_point((x, y), self.button_list)
+            for i in self.button_list:
+                if i in self.buttons_hovered:
+                    i.scale = 1.1
                 else:
-                    button.scale = 1
+                    i.scale = 1
 
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
-            self.buttons_clicked = arcade.check_for_collision_with_list(arcade.Sprite(center_x=x, center_y=y, width=1, height=1), self.button_list)
+            
+            # Check for buttons being clicked
+            self.buttons_clicked = self.buttons_hovered
             for i in self.buttons_clicked:
-                i.scale = 0.8
+                i.scale = 0.9
+
+            # Check for player
+            if arcade.get_sprites_at_point((x, y), self.player):
+                self.muffin_status = "clicked"
+            
             
 
         
     def on_mouse_release(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
+            if self.muffin_status == "clicked":
+                self.muffin_status = "flying"
             print(self.buttons_clicked)
             try:
                 if self.play_button in self.buttons_clicked:
                     self.change_scene(True, 1)
-                    self.play_button.kill()
                 if self.back_button in self.buttons_clicked:
                     self.home()
+                if self.level1_button in self.buttons_clicked:
+                    self.level1_button.kill()
+                    self.change_scene(False, 1)
             except:
                 pass
             self.buttons_clicked = []
@@ -112,9 +147,13 @@ class GameView(arcade.Window):
         # Clear the screen to the background color
         self.clear()
         self.button_list.draw()
+        self.player.draw()
 
     def on_update(self, delta_time):
-        pass
+        if self.muffin_status == "flying":
+            self.physics_engine.update()
+
+            self.muffin.forward(5)
 
 
 
