@@ -20,7 +20,7 @@ class GameView(arcade.Window):
         self.background_color = arcade.csscolor.BURLYWOOD
         self.muffin_texture = arcade.load_texture("assets/muffin.png")
         
-        #load buttons textures
+        #load home screen buttons textures
         self.play_texture = arcade.load_texture("assets/button-play.png")
         self.current_screen = "none"
 
@@ -62,10 +62,12 @@ class GameView(arcade.Window):
                 self.back_button.center_x = 50
                 self.back_button.center_y = WINDOW_HEIGHT-50
 
+                self.level1_button = arcade.Sprite(self.l_1_texture)
+                self.level1_button.center_x = WINDOW_WIDTH/2
+                self.level1_button.center_y = WINDOW_HEIGHT/2
+
 
                 self.button_list.append(self.back_button)
-
-                
 
         else:
             pass
@@ -92,11 +94,14 @@ class GameView(arcade.Window):
     def on_mouse_release(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
             print(self.buttons_clicked)
-            if self.play_button in self.buttons_clicked:
-                self.change_scene(True, 1)
-                self.play_button.kill()
-            if self.back_button in self.buttons_clicked:
-                self.home()
+            try:
+                if self.play_button in self.buttons_clicked:
+                    self.change_scene(True, 1)
+                    self.play_button.kill()
+                if self.back_button in self.buttons_clicked:
+                    self.home()
+            except:
+                pass
             self.buttons_clicked = []
             self.play_button.color = 255, 255, 255
                 
