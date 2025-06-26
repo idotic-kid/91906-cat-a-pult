@@ -117,7 +117,7 @@ class GameView(arcade.Window):
                 angle_to_catapult = arcade.math.get_angle_radians(x, y, self.car_spawn_x, self.car_spawn_y)
 
                 self.car.center_x = arcade.math.clamp(x, self.car_spawn_x-math.sin(angle_to_catapult)*25, self.car_spawn_x+math.sin(angle_to_catapult)*25)
-                self.car.center_y = arcade.math.clamp(x, self.car_spawn_y-math.cos(angle_to_catapult)*25, self.car_spawn_y+math.cos(angle_to_catapult)*25)
+                self.car.center_y = arcade.math.clamp(y, self.car_spawn_y-math.cos(angle_to_catapult)*25, self.car_spawn_y+math.cos(angle_to_catapult)*25)
 
 
 
