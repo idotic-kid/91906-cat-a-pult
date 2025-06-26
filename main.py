@@ -27,7 +27,8 @@ class GameView(arcade.Window):
         self.buttons_hovered = []
         self.buttons_clicked = []
 
-        self.muffin_status = "none"
+        self.car_status = "none"
+        self.GRAVITY = 0
 
 
 
@@ -48,6 +49,10 @@ class GameView(arcade.Window):
         
         self.player = arcade.SpriteList()
         self.fish = arcade.SpriteList()
+
+        self.car_spawn_x = 100
+        self.car_spawn_y = 100
+
 
 
     # This is an IMPORTANT FUNCTION !!!!!!!!!!!!!!!!!!!!!!!!! (i made it)
@@ -76,22 +81,23 @@ class GameView(arcade.Window):
                 self.level1_button.center_x = WINDOW_WIDTH/2
                 self.level1_button.center_y = WINDOW_HEIGHT/2
 
-
                 self.button_list.append(self.back_button)
                 self.button_list.append(self.level1_button)
 
         else:
             # Level 1
-            if screen_id ==1:
-                self.background_color = arcade.csscolor.AQUA
-                self.muffin = arcade.Sprite(self.muffin_texture)
-                self.muffin.center_x = 100
-                self.muffin.center_y = 100
-                self.muffin.scale = 0.7
 
-                self.player.append(self.muffin)
+            if screen_id == 1:
+                self.background_color = arcade.csscolor.AQUA
+                self.car = arcade.Sprite(self.muffin_texture)
+                self.car.center_x = self.car_spawn_x
+                self.car.center_y = self.car_spawn_y
+                self.car.scale = 0.7
+                
+                self.player.append(self.car)
+
                 self.physics_engine = arcade.PhysicsEngineSimple(
-                    self.muffin
+                    self.car
                 )
 
 
@@ -107,6 +113,14 @@ class GameView(arcade.Window):
                 else:
                     i.scale = 1
 
+            if self.car_status == "clicked":
+                angle_to_catapult = arcade.math.get_angle_radians(x, y, self.car_spawn_x, self.car_spawn_y)
+
+                self.car.center_x = arcade.math.clamp(x, self.car_spawn_x-math.sin(angle_to_catapult)*25, self.car_spawn_x+math.sin(angle_to_catapult)*25)
+                self.car.center_y = arcade.math.clamp(x, self.car_spawn_y-math.cos(angle_to_catapult)*25, self.car_spawn_y+math.cos(angle_to_catapult)*25)
+
+
+
     def on_mouse_press(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
             
@@ -117,15 +131,20 @@ class GameView(arcade.Window):
 
             # Check for player
             if arcade.get_sprites_at_point((x, y), self.player):
-                self.muffin_status = "clicked"
+                self.car_status = "clicked"
+                
+
             
-            
+
 
         
     def on_mouse_release(self, x, y, button, modifiers):
         if button == arcade.MOUSE_BUTTON_LEFT:
-            if self.muffin_status == "clicked":
-                self.muffin_status = "flying"
+            if self.car_status == "clicked":
+                self.car_status = "flying"
+                self.car.change_y = 10
+                self.car.change_x = 10
+                self.GRAVITY = 0.4
             print(self.buttons_clicked)
             try:
                 if self.play_button in self.buttons_clicked:
@@ -146,14 +165,19 @@ class GameView(arcade.Window):
 
         # Clear the screen to the background color
         self.clear()
+
+        arcade.draw_circle_filled(100, 100, 50, arcade.csscolor.BROWN)
+
         self.button_list.draw()
         self.player.draw()
 
-    def on_update(self, delta_time):
-        if self.muffin_status == "flying":
-            self.physics_engine.update()
 
-            self.muffin.forward(5)
+    def on_update(self, delta_time):
+        if self.car_status == "flying":
+            self.physics_engine.update()
+            self.car.change_y = self.car.change_y - self.GRAVITY
+        if self.car_status == "clicked":
+            pass
 
 
 
