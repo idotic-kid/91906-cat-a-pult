@@ -115,9 +115,12 @@ class GameView(arcade.Window):
 
             if self.car_status == "clicked":
                 angle_to_catapult = arcade.math.get_angle_radians(x, y, self.car_spawn_x, self.car_spawn_y)
+                distance_to_catapult = arcade.math.clamp(arcade.math.get_distance(x, y, self.car_spawn_x, self.car_spawn_y), 0, 25)
 
-                self.car.center_x = arcade.math.clamp(x, self.car_spawn_x-math.sin(angle_to_catapult)*25, self.car_spawn_x+math.sin(angle_to_catapult)*25)
-                self.car.center_y = arcade.math.clamp(y, self.car_spawn_y-math.cos(angle_to_catapult)*25, self.car_spawn_y+math.cos(angle_to_catapult)*25)
+                self.car.center_x = self.car_spawn_x - math.sin(angle_to_catapult)*distance_to_catapult
+                self.car.center_y = self.car_spawn_y - math.cos(angle_to_catapult)*distance_to_catapult
+
+
 
 
 
@@ -165,9 +168,6 @@ class GameView(arcade.Window):
 
         # Clear the screen to the background color
         self.clear()
-
-        arcade.draw_circle_filled(100, 100, 50, arcade.csscolor.BROWN)
-
         self.button_list.draw()
         self.player.draw()
 
