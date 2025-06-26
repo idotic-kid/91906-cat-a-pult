@@ -65,6 +65,9 @@ class GameView(arcade.Window):
         # Kill all buttons
         for i in self.button_list:
             i.kill()
+        for i in self.player:
+            i.kill()
+
 
         if is_menu:
             # Menu 1 screen 1 (level select)
@@ -88,6 +91,7 @@ class GameView(arcade.Window):
             # Level 1
 
             if screen_id == 1:
+                self.GRAVITY = 0
                 self.background_color = arcade.csscolor.AQUA
                 self.car = arcade.Sprite(self.muffin_texture)
                 self.car.center_x = self.car_spawn_x
@@ -145,8 +149,8 @@ class GameView(arcade.Window):
         if button == arcade.MOUSE_BUTTON_LEFT:
             if self.car_status == "clicked":
                 self.car_status = "flying"
-                self.car.change_y = 10
-                self.car.change_x = 10
+                self.car.change_y = self.car_spawn_y - self.car.center_y
+                self.car.change_x = self.car_spawn_x - self.car.center_x
                 self.GRAVITY = 0.4
             print(self.buttons_clicked)
             try:
@@ -168,6 +172,8 @@ class GameView(arcade.Window):
 
         # Clear the screen to the background color
         self.clear()
+        arcade.draw_circle_filled(self.car_spawn_x, self.car_spawn_y, 50, arcade.color.GREEN)
+
         self.button_list.draw()
         self.player.draw()
 
@@ -176,6 +182,8 @@ class GameView(arcade.Window):
         if self.car_status == "flying":
             self.physics_engine.update()
             self.car.change_y = self.car.change_y - self.GRAVITY
+            if self.car.center_x > WINDOW_WIDTH or self.car.center_y<0:
+                self.change_scene(False, 1)
         if self.car_status == "clicked":
             pass
 
