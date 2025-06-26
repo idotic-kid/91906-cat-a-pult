@@ -15,7 +15,7 @@ class GameView(arcade.Window):
     def __init__(self):
 
         # Call the parent class and set up the window
-        super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=True)
+        super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=False)
         self.highscore = 0
 
         self.background_color = arcade.csscolor.BURLYWOOD
@@ -139,6 +139,8 @@ class GameView(arcade.Window):
             # Check for player
             if arcade.get_sprites_at_point((x, y), self.player):
                 self.car_status = "clicked"
+                self.GRAVITY = 0.4
+
                 
 
             
@@ -151,7 +153,6 @@ class GameView(arcade.Window):
                 self.car_status = "flying"
                 self.car.change_y = self.car_spawn_y - self.car.center_y
                 self.car.change_x = self.car_spawn_x - self.car.center_x
-                self.GRAVITY = 0.4
             print(self.buttons_clicked)
             try:
                 if self.play_button in self.buttons_clicked:
@@ -176,6 +177,20 @@ class GameView(arcade.Window):
 
         self.button_list.draw()
         self.player.draw()
+
+        # Draw the line indicator
+        if self.car_status == "clicked":
+            LINE_LENGTH = 40
+
+            line_turtle = arcade.Sprite(center_x=self.car.center_x, center_y=self.car.center_y)
+            line_turtle.change_y = self.car_spawn_y - self.car.center_y
+            for i in range(1, LINE_LENGTH):
+                arcade.draw_circle_filled(line_turtle.center_x, line_turtle.center_y, 4, arcade.color.WHITE)
+                line_turtle.center_x+= self.car_spawn_x - self.car.center_x
+                line_turtle.center_y += line_turtle.change_y
+                line_turtle.change_y -= self.GRAVITY
+            line_turtle.kill()
+
 
 
     def on_update(self, delta_time):
