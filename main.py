@@ -30,10 +30,17 @@ class GameView(arcade.Window):
         self.car_status = "none"
         self.GRAVITY = 0
 
+        self.camera = None
+
+
 
 
     def home(self):
         """Function for the home screen"""
+
+        self.camera = arcade.camera.Camera2D()
+        self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
+
 
         self.background_color = arcade.csscolor.BURLYWOOD
 
@@ -91,6 +98,10 @@ class GameView(arcade.Window):
             # Level 1
 
             if screen_id == 1:
+                self.car_status = "none"
+
+                self.shoots = []
+
                 self.GRAVITY = 0
                 self.background_color = arcade.csscolor.AQUA
                 self.car = arcade.Sprite(self.muffin_texture)
@@ -173,10 +184,23 @@ class GameView(arcade.Window):
 
         # Clear the screen to the background color
         self.clear()
-        arcade.draw_circle_filled(self.car_spawn_x, self.car_spawn_y, 50, arcade.color.GREEN)
+
+
+        # Useful circle
+        arcade.draw_circle_outline(self.car_spawn_x, self.car_spawn_y, 25, arcade.color.GREEN, 4)
 
         self.button_list.draw()
         self.player.draw()
+
+
+        self.camera.use()
+
+        
+        try:
+            for i in self.shoots:
+                arcade.draw_circle_filled(i[0], i[1], 5, (255, 255, 255))
+        except:
+            pass
 
         # Draw the line indicator
         if self.car_status == "clicked":
@@ -194,11 +218,22 @@ class GameView(arcade.Window):
 
 
     def on_update(self, delta_time):
+        self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
+
         if self.car_status == "flying":
             self.physics_engine.update()
+            
+            # Camera
+            self.camera.position = (self.car.center_x if self.car.center_x > WINDOW_WIDTH/2 else WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
+
             self.car.change_y = self.car.change_y - self.GRAVITY
-            if self.car.center_x > WINDOW_WIDTH or self.car.center_y<0:
+            self.shoots.append(self.car.position)
+
+            # Temporary reset level when car out of bounds
+            if self.car.center_y < 0:
                 self.change_scene(False, 1)
+
+
         if self.car_status == "clicked":
             pass
 
