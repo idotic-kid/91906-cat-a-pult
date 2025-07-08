@@ -60,6 +60,9 @@ class GameView(arcade.Window):
         self.car_spawn_x = 100
         self.car_spawn_y = 100
 
+        self.shoots = []
+
+
 
 
     # This is an IMPORTANT FUNCTION !!!!!!!!!!!!!!!!!!!!!!!!! (i made it)
@@ -99,8 +102,6 @@ class GameView(arcade.Window):
 
             if screen_id == 1:
                 self.car_status = "none"
-
-                self.shoots = []
 
                 self.GRAVITY = 0
                 self.background_color = arcade.csscolor.AQUA
@@ -162,6 +163,7 @@ class GameView(arcade.Window):
         if button == arcade.MOUSE_BUTTON_LEFT:
             if self.car_status == "clicked":
                 self.car_status = "flying"
+                self.shoots = []
                 self.car.change_y = self.car_spawn_y - self.car.center_y
                 self.car.change_x = self.car_spawn_x - self.car.center_x
             print(self.buttons_clicked)
@@ -198,7 +200,7 @@ class GameView(arcade.Window):
         
         try:
             for i in self.shoots:
-                arcade.draw_circle_filled(i[0], i[1], 5, (255, 255, 255))
+                arcade.draw_circle_filled(i[0], i[1], 4, (255, 255, 255))
         except:
             pass
 
