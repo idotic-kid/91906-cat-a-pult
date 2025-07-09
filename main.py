@@ -5,6 +5,7 @@ import math
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Cat-a-pult!"
+TILE_LENGTH = 40
 screen_history = []
 
 class GameView(arcade.Window):
@@ -32,6 +33,8 @@ class GameView(arcade.Window):
 
         self.camera = None
 
+        self.tilemap = None
+
 
 
 
@@ -58,26 +61,36 @@ class GameView(arcade.Window):
         self.fish = arcade.SpriteList()
 
         self.car_spawn_x = 100
-        self.car_spawn_y = 100
+        self.car_spawn_y = 400
 
         self.shoots = []
 
 
 
 
-    # This is an IMPORTANT FUNCTION !!!!!!!!!!!!!!!!!!!!!!!!! (i made it)
+    # This is an IMPORTANT FUNCTION !!!!!!!!!!!!!!!!!!!!!!!! (i made it)
     def change_scene(self, is_menu=False, screen_id=1):
-        '''Call this function to change the 'level'. Switches to a different pre-programmed level.
+        '''
+        Call this function to change the 'level'. Switches to a
+        different pre-programmed level.
         Arguments:
             is_menu (bool) I think this one is self-explanatory.
-            screen_id (int) eg. 2 These are the screens for me to code in.
+            screen_id (int) These are the screens for me to code in.
         '''
+
+        layer_options = {
+            "ground": {
+                "use_spatial_hash": True
+            }
+        }
+
         # Kill all buttons
         for i in self.button_list:
             i.kill()
         for i in self.player:
             i.kill()
 
+        self.map_length = 1280
 
         if is_menu:
             # Menu 1 screen 1 (level select)
@@ -101,16 +114,28 @@ class GameView(arcade.Window):
             # Level 1
 
             if screen_id == 1:
+
+                self.tile_map = arcade.load_tilemap(
+                    "tiles/level-1.json",
+                    layer_options=layer_options,
+                )
+
+                self.scene = arcade.Scene.from_tilemap(self.tile_map)
+
+                self.map_length = self.tile_map.width*self.tile_map.tile_width
+
                 self.car_status = "none"
 
                 self.GRAVITY = 0
-                self.background_color = arcade.csscolor.AQUA
+                self.background_color = (124, 244, 255)
                 self.car = arcade.Sprite(self.muffin_texture)
                 self.car.center_x = self.car_spawn_x
                 self.car.center_y = self.car_spawn_y
                 self.car.scale = 0.7
-                
+
                 self.player.append(self.car)
+
+                self.scene.add_sprite("Player", self.car)
 
                 self.physics_engine = arcade.PhysicsEngineSimple(
                     self.car
@@ -121,21 +146,20 @@ class GameView(arcade.Window):
 
     
     def on_mouse_motion(self, x, y, dx, dy):
-            # Check if the mouse cursor collides with the button sprite
-            self.buttons_hovered = arcade.get_sprites_at_point((x, y), self.button_list)
-            for i in self.button_list:
-                if i in self.buttons_hovered:
-                    i.scale = 1.1
-                else:
-                    i.scale = 1
+        # Check if the mouse cursor collides with the button sprite
+        self.buttons_hovered = arcade.get_sprites_at_point((x, y), self.button_list)
+        for i in self.button_list:
+            if i in self.buttons_hovered:
+                i.scale = 1.1
+            else:
+                i.scale = 1
 
-            if self.car_status == "clicked":
-                angle_to_catapult = arcade.math.get_angle_radians(x, y, self.car_spawn_x, self.car_spawn_y)
-                distance_to_catapult = arcade.math.clamp(arcade.math.get_distance(x, y, self.car_spawn_x, self.car_spawn_y), 0, 25)
+        if self.car_status == "clicked":
+            angle_to_catapult = arcade.math.get_angle_radians(x, y, self.car_spawn_x, self.car_spawn_y)
+            distance_to_catapult = arcade.math.clamp(arcade.math.get_distance(x, y, self.car_spawn_x, self.car_spawn_y), 0, 25)
 
-                self.car.center_x = self.car_spawn_x - math.sin(angle_to_catapult)*distance_to_catapult
-                self.car.center_y = self.car_spawn_y - math.cos(angle_to_catapult)*distance_to_catapult
-
+            self.car.center_x = self.car_spawn_x - math.sin(angle_to_catapult)*distance_to_catapult
+            self.car.center_y = self.car_spawn_y - math.cos(angle_to_catapult)*distance_to_catapult
 
 
 
@@ -192,7 +216,11 @@ class GameView(arcade.Window):
         arcade.draw_circle_outline(self.car_spawn_x, self.car_spawn_y, 25, arcade.color.GREEN, 4)
 
         self.button_list.draw()
-        self.player.draw()
+
+        try:
+            self.scene.draw()
+        except:
+            pass
 
 
         self.camera.use()
@@ -224,9 +252,12 @@ class GameView(arcade.Window):
 
         if self.car_status == "flying":
             self.physics_engine.update()
+
+
+            # Camera movement if past middle
+            self.camera.position = (arcade.math.clamp(self.car.center_x, WINDOW_WIDTH/2, self.map_length-(WINDOW_WIDTH/2)), WINDOW_HEIGHT/2)
+                
             
-            # Camera
-            self.camera.position = (self.car.center_x if self.car.center_x > WINDOW_WIDTH/2 else WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
             self.car.change_y = self.car.change_y - self.GRAVITY
             self.shoots.append(self.car.position)
