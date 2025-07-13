@@ -5,23 +5,33 @@
     },
     "activeFile": "level-1.tmx",
     "expandedProjectPaths": [
+        "."
     ],
     "fileStates": {
         "level-1.tmx": {
-            "scale": 0.9064583333333334,
-            "selectedLayer": 0,
+            "scale": 1,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 479.8896805332107,
-                "y": 319.92645368880716
+                "x": 1459,
+                "y": 729
             }
+        },
+        "nice tiles.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
         }
     },
+    "last.exportedFilePath": "//wbfp02.westlake.local/shomes/em21236/Documents/13DTP/91906-cat-a-pult/tiles",
+    "last.imagePath": "//wbfp02.westlake.local/shomes/em21236/Documents/13DTP/91906-cat-a-pult/tiles",
+    "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
     "openFiles": [
         "level-1.tmx"
     ],
     "project": "level-1.tiled-project",
     "recentFiles": [
-        "level-1.tmx"
+        "level-1.tmx",
+        "nice tiles.tsx"
     ]
 }
