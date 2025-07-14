@@ -6,6 +6,7 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Cat-a-pult!"
 TILE_LENGTH = 40
+GRAVITY = 1500 #This is a different gravity from self.gravity
 screen_history = []
 
 class GameView(arcade.Window):
@@ -64,6 +65,10 @@ class GameView(arcade.Window):
         self.car_spawn_y = 400
 
         self.shoots = []
+        
+        gravity = (0, -GRAVITY)
+
+        self.physics_engine2 = arcade.PymunkPhysicsEngine(gravity=gravity)
 
 
 
@@ -111,8 +116,20 @@ class GameView(arcade.Window):
                 self.button_list.append(self.level1_button)
 
         else:
-            # Level 1
 
+            # Kills all the bricks
+            try:
+                
+                for i in self.wood:
+                    self.physics_engine2.remove_sprite(i)
+                    self.physics_engine2.space.remove()
+                    i.kill()
+
+                    
+            except:
+                pass
+            # Level 1
+            
             if screen_id == 1:
 
                 self.tile_map = arcade.load_tilemap(
@@ -120,11 +137,16 @@ class GameView(arcade.Window):
                     layer_options=layer_options,
                 )
 
+                self.wood = self.tile_map.sprite_lists["bits"]
+                self.ground_sprlist = self.tile_map.sprite_lists["ground"]
+
+
                 self.scene = arcade.Scene.from_tilemap(self.tile_map)
 
                 self.map_length = self.tile_map.width*self.tile_map.tile_width
 
                 self.car_status = "none"
+
 
                 self.GRAVITY = 0
                 self.background_color = (124, 244, 255)
@@ -141,9 +163,17 @@ class GameView(arcade.Window):
                     self.car
                 )
 
-                self.physics_engine2 = arcade.PymunkPhysicsEngine(
-                    
+                self.physics_engine2.add_sprite_list(
+                    self.ground_sprlist,
+                    friction=3,
+                    collision_type="wall",
+                    body_type=arcade.PymunkPhysicsEngine.STATIC,
                 )
+
+                self.physics_engine2.add_sprite_list(
+                    self.wood, collision_type="item", friction=3
+                )
+                
 
 
 
@@ -254,6 +284,9 @@ class GameView(arcade.Window):
     def on_update(self, delta_time):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
+        self.physics_engine2.step()
+
+
         if self.car_status == "flying":
             self.physics_engine.update()
 
@@ -268,6 +301,7 @@ class GameView(arcade.Window):
 
             # Temporary reset level when car out of bounds
             if self.car.center_y < 0:
+                self.car.kill()
                 self.change_scene(False, 1)
 
 
