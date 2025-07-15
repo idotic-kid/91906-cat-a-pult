@@ -65,10 +65,8 @@ class GameView(arcade.Window):
         self.car_spawn_y = 400
 
         self.shoots = []
-        
-        gravity = (0, -GRAVITY)
 
-        self.physics_engine2 = arcade.PymunkPhysicsEngine(gravity=gravity)
+        self.physics_engine2 = arcade.PymunkPhysicsEngine(gravity=(0, -GRAVITY))
 
 
 
@@ -117,20 +115,11 @@ class GameView(arcade.Window):
 
         else:
 
-            # Kills all the bricks
-            try:
-                
-                for i in self.wood:
-                    self.physics_engine2.remove_sprite(i)
-                    self.physics_engine2.space.remove()
-                    i.kill()
-
-                    
-            except:
-                pass
+            
             # Level 1
             
             if screen_id == 1:
+                self.physics_engine2 = arcade.PymunkPhysicsEngine(gravity=(0, -GRAVITY))
 
                 self.tile_map = arcade.load_tilemap(
                     "tiles/level-1.json",
@@ -139,6 +128,8 @@ class GameView(arcade.Window):
 
                 self.wood = self.tile_map.sprite_lists["bits"]
                 self.ground_sprlist = self.tile_map.sprite_lists["ground"]
+                self.fishes = self.tile_map.sprite_lists["fish"]
+
 
 
                 self.scene = arcade.Scene.from_tilemap(self.tile_map)
@@ -172,6 +163,9 @@ class GameView(arcade.Window):
 
                 self.physics_engine2.add_sprite_list(
                     self.wood, collision_type="item", friction=3
+                )
+                self.physics_engine2.add_sprite_list(
+                    self.fishes, collision_type="item", friction=3
                 )
                 
 
@@ -302,6 +296,17 @@ class GameView(arcade.Window):
             # Temporary reset level when car out of bounds
             if self.car.center_y < 0:
                 self.car.kill()
+
+                # Kills all the bricks
+                try:
+                    for i in self.wood:
+                        self.physics_engine2.remove_sprite(i)
+                        self.physics_engine2.space.remove(self.physics_engine2.get_physics_object(i))
+                        i.kill()
+                except:
+                    pass
+
+
                 self.change_scene(False, 1)
 
 
