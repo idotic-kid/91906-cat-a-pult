@@ -66,9 +66,6 @@ class GameView(arcade.Window):
 
         self.shoots = []
 
-        self.physics_engine2 = arcade.PymunkPhysicsEngine(gravity=(0, -GRAVITY))
-
-
 
 
     # This is an IMPORTANT FUNCTION !!!!!!!!!!!!!!!!!!!!!!!! (i made it)
@@ -278,8 +275,10 @@ class GameView(arcade.Window):
     def on_update(self, delta_time):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
-        self.physics_engine2.step()
-
+        try:
+            self.physics_engine2.step()
+        except:
+            pass
 
         if self.car_status == "flying":
             self.physics_engine.update()
