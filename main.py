@@ -147,22 +147,18 @@ class GameView(arcade.Window):
 
                 self.scene.add_sprite("Player", self.car)
 
-                self.physics_engine = arcade.PhysicsEngineSimple(
-                    self.car
-                )
-
                 self.physics_engine2.add_sprite_list(
                     self.ground_sprlist,
-                    friction=3,
+                    friction=2,
                     collision_type="wall",
-                    body_type=arcade.PymunkPhysicsEngine.STATIC,
+                    body_type=arcade.PymunkPhysicsEngine.STATIC, elasticity=1
                 )
 
                 self.physics_engine2.add_sprite_list(
                     self.wood, collision_type="item", friction=3
                 )
                 self.physics_engine2.add_sprite_list(
-                    self.fishes, collision_type="item", friction=3
+                    self.fishes, collision_type="item"
                 )
                 
 
@@ -212,9 +208,12 @@ class GameView(arcade.Window):
         if button == arcade.MOUSE_BUTTON_LEFT:
             if self.car_status == "clicked":
                 self.car_status = "flying"
+                self.physics_engine2.add_sprite(self.car, collision_type="player", elasticity=0.8)
                 self.shoots = []
-                self.car.change_y = self.car_spawn_y - self.car.center_y
-                self.car.change_x = self.car_spawn_x - self.car.center_x
+                self.physics_engine2.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*3000, (self.car_spawn_y - self.car.center_y)*3000))
+                
+                #((self.car_spawn_x - self.car.center_x)*1000, (self.car_spawn_y - self.car.center_y)*1000)
+                
             print(self.buttons_clicked)
             try:
                 if self.play_button in self.buttons_clicked:
@@ -250,7 +249,7 @@ class GameView(arcade.Window):
 
         self.camera.use()
 
-        
+        # Draw trail
         try:
             for i in self.shoots:
                 arcade.draw_circle_filled(i[0], i[1], 4, (255, 255, 255))
@@ -281,29 +280,14 @@ class GameView(arcade.Window):
             pass
 
         if self.car_status == "flying":
-            self.physics_engine.update()
-
-
             # Camera movement if past middle
             self.camera.position = (arcade.math.clamp(self.car.center_x, WINDOW_WIDTH/2, self.map_length-(WINDOW_WIDTH/2)), WINDOW_HEIGHT/2)
-                
-            
-
-            self.car.change_y = self.car.change_y - self.GRAVITY
             self.shoots.append(self.car.position)
 
             # Temporary reset level when car out of bounds
             if self.car.center_y < 0:
                 self.car.kill()
 
-                # Kills all the bricks
-                try:
-                    for i in self.wood:
-                        self.physics_engine2.remove_sprite(i)
-                        self.physics_engine2.space.remove(self.physics_engine2.get_physics_object(i))
-                        i.kill()
-                except:
-                    pass
 
 
                 self.change_scene(False, 1)
