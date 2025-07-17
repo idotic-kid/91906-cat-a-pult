@@ -235,7 +235,6 @@ class GameView(arcade.Window):
         # Clear the screen to the background color
         self.clear()
 
-
         # Useful circle
         arcade.draw_circle_outline(self.car_spawn_x, self.car_spawn_y, 25, arcade.color.GREEN, 4)
 
@@ -243,6 +242,9 @@ class GameView(arcade.Window):
 
         try:
             self.scene.draw()
+            
+            # debug hitbox
+            self.car.draw_hit_box()
         except:
             pass
 
