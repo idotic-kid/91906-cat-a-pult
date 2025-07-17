@@ -30,7 +30,6 @@ class GameView(arcade.Window):
         self.buttons_clicked = []
 
         self.car_status = "none"
-        self.GRAVITY = 0
 
         self.camera = None
 
@@ -116,7 +115,7 @@ class GameView(arcade.Window):
             # Level 1
             
             if screen_id == 1:
-                self.physics_engine2 = arcade.PymunkPhysicsEngine(gravity=(0, -GRAVITY))
+                self.physics_engine = arcade.PymunkPhysicsEngine(gravity=(0, -GRAVITY))
 
                 self.tile_map = arcade.load_tilemap(
                     "tiles/level-1.json",
@@ -136,7 +135,6 @@ class GameView(arcade.Window):
                 self.car_status = "none"
 
 
-                self.GRAVITY = 0
                 self.background_color = (124, 244, 255)
                 self.car = arcade.Sprite(self.muffin_texture)
                 self.car.center_x = self.car_spawn_x
@@ -147,19 +145,21 @@ class GameView(arcade.Window):
 
                 self.scene.add_sprite("Player", self.car)
 
-                self.physics_engine2.add_sprite_list(
+                self.physics_engine.add_sprite_list(
                     self.ground_sprlist,
-                    friction=2,
+                    friction=0.5,
                     collision_type="wall",
                     body_type=arcade.PymunkPhysicsEngine.STATIC, elasticity=1
                 )
 
-                self.physics_engine2.add_sprite_list(
+                self.physics_engine.add_sprite_list(
                     self.wood, collision_type="item", friction=3
                 )
-                self.physics_engine2.add_sprite_list(
+                self.physics_engine.add_sprite_list(
                     self.fishes, collision_type="item"
                 )
+
+
                 
 
 
@@ -196,7 +196,6 @@ class GameView(arcade.Window):
             # Check for player
             if arcade.get_sprites_at_point((x, y), self.player):
                 self.car_status = "clicked"
-                self.GRAVITY = 0.4
 
                 
 
@@ -208,9 +207,10 @@ class GameView(arcade.Window):
         if button == arcade.MOUSE_BUTTON_LEFT:
             if self.car_status == "clicked":
                 self.car_status = "flying"
-                self.physics_engine2.add_sprite(self.car, collision_type="player", elasticity=0.8)
+                self.car.lifetime = 10.0
+                self.physics_engine.add_sprite(self.car, collision_type="player", elasticity=0.8)
                 self.shoots = []
-                self.physics_engine2.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*3000, (self.car_spawn_y - self.car.center_y)*3000))
+                self.physics_engine.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*3000, (self.car_spawn_y - self.car.center_y)*3000))
                 
                 #((self.car_spawn_x - self.car.center_x)*1000, (self.car_spawn_y - self.car.center_y)*1000)
                 
@@ -261,12 +261,13 @@ class GameView(arcade.Window):
         # Draw the line indicator
         if self.car_status == "clicked":
             LINE_LENGTH = 40
-
+            self.GRAVITY = 0.6
             line_turtle = arcade.Sprite(center_x=self.car.center_x, center_y=self.car.center_y)
-            line_turtle.change_y = self.car_spawn_y - self.car.center_y
+            line_turtle.change_y = (self.car_spawn_y - self.car.center_y)
+            line_turtle.change_x = (self.car_spawn_x - self.car.center_x)
             for i in range(1, LINE_LENGTH):
                 arcade.draw_circle_filled(line_turtle.center_x, line_turtle.center_y, 4, arcade.color.WHITE)
-                line_turtle.center_x+= self.car_spawn_x - self.car.center_x
+                line_turtle.center_x += line_turtle.change_x
                 line_turtle.center_y += line_turtle.change_y
                 line_turtle.change_y -= self.GRAVITY
             line_turtle.kill()
@@ -277,7 +278,7 @@ class GameView(arcade.Window):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
         try:
-            self.physics_engine2.step()
+            self.physics_engine.step()
         except:
             pass
 
@@ -285,14 +286,14 @@ class GameView(arcade.Window):
             # Camera movement if past middle
             self.camera.position = (arcade.math.clamp(self.car.center_x, WINDOW_WIDTH/2, self.map_length-(WINDOW_WIDTH/2)), WINDOW_HEIGHT/2)
             self.shoots.append(self.car.position)
-
-            # Temporary reset level when car out of bounds
-            if self.car.center_y < 0:
+            
+            # Despawn after 
+            self.car.lifetime -= delta_time
+            if self.car.lifetime <= 0:
                 self.car.kill()
-
-
-
                 self.change_scene(False, 1)
+
+        
 
 
         if self.car_status == "clicked":
