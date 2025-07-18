@@ -1,6 +1,16 @@
 import arcade
 import math
 
+from arcade.particles import (
+    Emitter,
+    LifetimeParticle,
+    FadeParticle,
+    EmitterIntervalWithTime,
+    EmitMaintainCount,
+    EmitBurst,
+)
+
+
 # Constants
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -8,6 +18,29 @@ WINDOW_TITLE = "Cat-a-pult!"
 TILE_LENGTH = 40
 GRAVITY = 1500 #This is a different gravity from self.gravity
 screen_history = []
+
+TEXTURE = ":resources:images/pinball/pool_cue_ball.png" #temp
+
+
+def emitter_1(pos, n=50, speed=1.0, size=0.3, a=32):
+        """Burst, emit from center, particle lifetime 1.0 seconds. Copy pasted from arcade website directly lmao
+        args
+        pos is position
+        n is number of bursts
+
+        """
+        e = Emitter(
+            center_xy=pos,
+            emit_controller=EmitBurst(n),
+            particle_factory=lambda emitter: LifetimeParticle(
+            filename_or_texture=TEXTURE,
+                change_xy=arcade.rand_in_circle((0.0, 0.0), speed),
+                lifetime=1.0,
+                scale=size,
+                alpha=a
+            )   
+            )
+        return e
 
 class GameView(arcade.Window):
     """
@@ -34,7 +67,8 @@ class GameView(arcade.Window):
         self.camera = None
 
         self.tilemap = None
-
+        
+        self.emitter = None
 
 
 
@@ -159,9 +193,18 @@ class GameView(arcade.Window):
                     self.fishes, collision_type="item"
                 )
 
+                def test1():
+                    print("hit")
+                    self.emitter = emitter_1((self.car.center_x, self.car.center_y), 50, 1, 0.3, 32)
+
+                def test2():
+                    print("unhit")
+
+                self.physics_engine.add_collision_handler("player", "ground", begin_handler=test1(), post_handler=test2())
+
 
                 
-
+    
 
 
 
@@ -207,7 +250,7 @@ class GameView(arcade.Window):
         if button == arcade.MOUSE_BUTTON_LEFT:
             if self.car_status == "clicked":
                 self.car_status = "flying"
-                self.car.lifetime = 10.0
+                self.car.lifetime = 5.0
                 self.physics_engine.add_sprite(self.car, collision_type="player", elasticity=0.8)
                 self.shoots = []
                 self.physics_engine.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*3000, (self.car_spawn_y - self.car.center_y)*3000))
@@ -273,9 +316,16 @@ class GameView(arcade.Window):
             line_turtle.kill()
 
 
+        # Particles
+        if self.emitter:
+            self.emitter.draw()
+
+
 
     def on_update(self, delta_time):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
+
+        self.emitter=None
 
         try:
             self.physics_engine.step()
@@ -290,8 +340,10 @@ class GameView(arcade.Window):
             # Despawn after 
             self.car.lifetime -= delta_time
             if self.car.lifetime <= 0:
+                self.car_status = "dead"
                 self.car.kill()
-                self.change_scene(False, 1)
+                self.car = None
+                
 
         
 
