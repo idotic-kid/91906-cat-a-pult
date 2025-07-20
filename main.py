@@ -16,7 +16,7 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Cat-a-pult!"
 TILE_LENGTH = 40
-GRAVITY = 1500 #This is a different gravity from self.gravity
+GRAVITY = 1200 #This is a different gravity from self.gravity
 screen_history = []
 
 TEXTURE = ":resources:images/pinball/pool_cue_ball.png" #temp
@@ -69,6 +69,15 @@ class GameView(arcade.Window):
         self.tilemap = None
         
         self.emitter = None
+
+    def smooth_scale_to(self, sprite, scaleto):
+        """Rescale sprite
+        args:
+        sprite = sprite to be rescaled
+        scaleto = new scale"""
+        sprite.scale_x += (scaleto-sprite.scale_x)/5
+        sprite.scale_y += (scaleto-sprite.scale_y)/5
+
 
 
 
@@ -144,8 +153,10 @@ class GameView(arcade.Window):
                 self.button_list.append(self.level1_button)
 
         else:
-
             
+            self.pause_texture = arcade.load_texture("assets/button-pause.png")
+            self.pause_button = arcade.Sprite(self.pause_texture)
+
             # Level 1
             
             if screen_id == 1:
@@ -212,11 +223,6 @@ class GameView(arcade.Window):
     def on_mouse_motion(self, x, y, dx, dy):
         # Check if the mouse cursor collides with the button sprite
         self.buttons_hovered = arcade.get_sprites_at_point((x, y), self.button_list)
-        for i in self.button_list:
-            if i in self.buttons_hovered:
-                i.scale = 1.1
-            else:
-                i.scale = 1
 
         if self.car_status == "clicked":
             angle_to_catapult = arcade.math.get_angle_radians(x, y, self.car_spawn_x, self.car_spawn_y)
@@ -233,16 +239,10 @@ class GameView(arcade.Window):
             
             # Check for buttons being clicked
             self.buttons_clicked = self.buttons_hovered
-            for i in self.buttons_clicked:
-                i.scale = 0.9
 
             # Check for player
-            if arcade.get_sprites_at_point((x, y), self.player):
+            if self.car_status != "clicked" and arcade.get_sprites_at_point((x, y), self.player):
                 self.car_status = "clicked"
-
-                
-
-            
 
 
         
@@ -253,11 +253,13 @@ class GameView(arcade.Window):
                 self.car.lifetime = 5.0
                 self.physics_engine.add_sprite(self.car, collision_type="player", elasticity=0.8)
                 self.shoots = []
-                self.physics_engine.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*3000, (self.car_spawn_y - self.car.center_y)*3000))
+                self.physics_engine.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*2500, (self.car_spawn_y - self.car.center_y)*2500))
                 
                 #((self.car_spawn_x - self.car.center_x)*1000, (self.car_spawn_y - self.car.center_y)*1000)
                 
             print(self.buttons_clicked)
+
+            # Button click event scripts
             try:
                 if self.play_button in self.buttons_clicked:
                     self.change_scene(True, 1)
@@ -280,7 +282,7 @@ class GameView(arcade.Window):
 
         # Useful circle
         arcade.draw_circle_outline(self.car_spawn_x, self.car_spawn_y, 25, arcade.color.GREEN, 4)
-
+        
         self.button_list.draw()
 
         try:
@@ -304,16 +306,7 @@ class GameView(arcade.Window):
         # Draw the line indicator
         if self.car_status == "clicked":
             LINE_LENGTH = 40
-            self.GRAVITY = 0.6
-            line_turtle = arcade.Sprite(center_x=self.car.center_x, center_y=self.car.center_y)
-            line_turtle.change_y = (self.car_spawn_y - self.car.center_y)
-            line_turtle.change_x = (self.car_spawn_x - self.car.center_x)
-            for i in range(1, LINE_LENGTH):
-                arcade.draw_circle_filled(line_turtle.center_x, line_turtle.center_y, 4, arcade.color.WHITE)
-                line_turtle.center_x += line_turtle.change_x
-                line_turtle.center_y += line_turtle.change_y
-                line_turtle.change_y -= self.GRAVITY
-            line_turtle.kill()
+            
 
 
         # Particles
@@ -326,6 +319,15 @@ class GameView(arcade.Window):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
         self.emitter=None
+
+        # Button smooth animation
+        for i in self.button_list:
+            if i in self.buttons_clicked:
+                self.smooth_scale_to(i, 0.9)
+            elif i in self.buttons_hovered:
+                self.smooth_scale_to(i, 1.1)
+            else:
+                self.smooth_scale_to(i, 1)
 
         try:
             self.physics_engine.step()
