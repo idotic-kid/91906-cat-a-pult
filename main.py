@@ -19,7 +19,7 @@ TILE_LENGTH = 40
 GRAVITY = 1200 #This is a different gravity from self.gravity
 screen_history = []
 
-TEXTURE = ":resources:images/pinball/pool_cue_ball.png" #temp
+TEXTURE = "assets/button-play.png" #temp
 
 
 def emitter_1(pos, n=50, speed=1.0, size=0.3, a=32):
@@ -104,7 +104,7 @@ class GameView(arcade.Window):
         self.fish = arcade.SpriteList()
 
         self.car_spawn_x = 300
-        self.car_spawn_y = 400
+        self.car_spawn_y = 200
 
         self.shoots = []
 
@@ -215,14 +215,8 @@ class GameView(arcade.Window):
                     self.fishes, collision_type="item"
                 )
 
-                def test1():
-                    print("hit")
-                    self.emitter = emitter_1((self.car.center_x, self.car.center_y), 50, 1, 0.3, 32)
 
-                def test2():
-                    print("unhit")
-
-                self.physics_engine.add_collision_handler("player", "ground", begin_handler=test1(), post_handler=test2())
+                #self.physics_engine.add_collision_handler("player", "ground", begin_handler=test1(), post_handler=test2())
 
 
                 
@@ -318,7 +312,7 @@ class GameView(arcade.Window):
 
         # Draw the line indicator
         if self.car_status == "clicked":
-            LINE_LENGTH = 40
+            LINE_LENGTH = 10
             self.GRAVITY = 0.6
             line_turtle = arcade.Sprite(center_x=self.car.center_x, center_y=self.car.center_y)
             line_turtle.change_y = (self.car_spawn_y - self.car.center_y)
@@ -332,16 +326,9 @@ class GameView(arcade.Window):
             
 
 
-        # Particles
-        if self.emitter:
-            self.emitter.draw()
-
-
-
     def on_update(self, delta_time):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
-        self.emitter=None
 
         # Button smooth animation
         for i in self.button_list:
