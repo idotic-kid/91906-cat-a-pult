@@ -16,8 +16,11 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Cat-a-pult!"
 TILE_LENGTH = 40
-GRAVITY = 1200 #This is a different gravity from self.gravity
+GRAVITY = 1000 #This is a different gravity from self.gravity
+UPGRADES = []
 screen_history = []
+
+
 
 TEXTURE = "assets/button-play.png" #temp
 
@@ -55,6 +58,7 @@ class GameView(arcade.Window):
 
         self.background_color = arcade.csscolor.BURLYWOOD
         self.muffin_texture = arcade.load_texture("assets/muffin.png")
+        self.claw_texture = arcade.load_texture("assets/slash.png")
         
         #load home screen buttons textures
         self.play_texture = arcade.load_texture("assets/button-play.png")
@@ -106,7 +110,7 @@ class GameView(arcade.Window):
         self.car_spawn_x = 300
         self.car_spawn_y = 200
 
-        self.shoots = []
+        self.launch_line_dots = []
 
 
 
@@ -168,6 +172,13 @@ class GameView(arcade.Window):
             self.pause_texture = arcade.load_texture("assets/button-pause.png")
             self.pause_button = arcade.Sprite(self.pause_texture)
 
+            self.wood_textures = []
+            self.wood_textures.append(arcade.load_texture("tiles/wood.png"))
+            self.wood_textures.append(arcade.load_texture("assets/wood_dmg_1.png"))
+            self.wood_textures.append(arcade.load_texture("assets/wood_dmg_0.png"))
+
+
+
             # Level 1
             
             if screen_id == 1:
@@ -180,7 +191,7 @@ class GameView(arcade.Window):
 
                 self.wood = self.tile_map.sprite_lists["bits"]
                 self.ground_sprlist = self.tile_map.sprite_lists["ground"]
-                self.fishes = self.tile_map.sprite_lists["fish"]
+                self.fish = self.tile_map.sprite_lists["fish"]
 
 
 
@@ -196,6 +207,7 @@ class GameView(arcade.Window):
                 self.car.center_x = self.car_spawn_x
                 self.car.center_y = self.car_spawn_y
                 self.car.scale = 0.7
+                
 
                 self.player.append(self.car)
 
@@ -212,11 +224,12 @@ class GameView(arcade.Window):
                     self.wood, collision_type="item", friction=3
                 )
                 self.physics_engine.add_sprite_list(
-                    self.fishes, collision_type="item"
+                    self.fish, collision_type="item"
                 )
 
 
                 #self.physics_engine.add_collision_handler("player", "ground", begin_handler=test1(), post_handler=test2())
+            self.wood_hp = [3 for i in self.wood]
 
 
                 
@@ -257,8 +270,8 @@ class GameView(arcade.Window):
                 self.car_status = "flying"
                 self.car.lifetime = 5.0
                 self.physics_engine.add_sprite(self.car, collision_type="player", elasticity=0.8)
-                self.shoots = []
-                self.physics_engine.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*2500, (self.car_spawn_y - self.car.center_y)*2500))
+                self.launch_line_dots = []
+                self.physics_engine.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*2400, (self.car_spawn_y - self.car.center_y)*2400))
                 
                 #((self.car_spawn_x - self.car.center_x)*1000, (self.car_spawn_y - self.car.center_y)*1000)
                 
@@ -297,18 +310,15 @@ class GameView(arcade.Window):
             
             # debug hitbox
             self.car.draw_hit_box()
+
+            # Draw trail        
+            for i in self.launch_line_dots:
+                arcade.draw_circle_filled(i[0], i[1], 4, (255, 255, 255))
         except:
             pass
 
 
         self.camera.use()
-
-        # Draw trail
-        try:
-            for i in self.shoots:
-                arcade.draw_circle_filled(i[0], i[1], 4, (255, 255, 255))
-        except:
-            pass
 
         # Draw the line indicator
         if self.car_status == "clicked":
@@ -329,7 +339,6 @@ class GameView(arcade.Window):
     def on_update(self, delta_time):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
-
         # Button smooth animation
         for i in self.button_list:
             if i in self.buttons_clicked:
@@ -339,15 +348,47 @@ class GameView(arcade.Window):
             else:
                 self.smooth_scale_to(i, 1)
 
+        
+                
+
         try:
             self.physics_engine.step()
+
+            # Camera movement if past middle
+            self.camera.position = (arcade.math.clamp(self.car.center_x, WINDOW_WIDTH/2, self.map_length-(WINDOW_WIDTH/2)), WINDOW_HEIGHT/2)
+            self.launch_line_dots.append(self.car.position)
+
+            # Claw attack code stuff here
+            self.claw.lifetime -= delta_time
+            if self.claw.lifetime <= 0:
+                self.claw.kill()
+                self.claw = None
+            if self.car_status == "attacked":
+                self.claw.position = self.car.position
+                self.claw.angle += 15
+
+            wood_hit = arcade.check_for_collision_with_list(self.claw, self.wood)
+            for i in wood_hit:
+                self.wood_hp[self.wood.index(i)] -=1
+
+            for i in self.wood:
+                if self.wood_hp[self.wood.index(i)] <=0:
+                    i.kill()
+                    i = None
+                else:
+                    i.texture = self.wood_textures[self.wood_hp[self.wood.index(i)]]
+
+
+
         except:
             pass
 
         if self.car_status == "flying":
-            # Camera movement if past middle
-            self.camera.position = (arcade.math.clamp(self.car.center_x, WINDOW_WIDTH/2, self.map_length-(WINDOW_WIDTH/2)), WINDOW_HEIGHT/2)
-            self.shoots.append(self.car.position)
+            # If close to fish, use claw
+            for i in self.fish:
+                if arcade.get_distance_between_sprites(self.car, i) <= 250:
+                    print("close")
+                    self.car_status = "attacking"
             
             # Despawn after 
             self.car.lifetime -= delta_time
@@ -357,11 +398,15 @@ class GameView(arcade.Window):
                 self.car = None
                 
 
+        if self.car_status == "attacking":
+            self.car_status = "attacked"
+            self.claw = arcade.Sprite(self.claw_texture)
+            self.claw.lifetime = 0.5
+            self.claw.position = self.car.position
+            self.scene.add_sprite("claw attack", self.claw)
+
         
 
-
-        if self.car_status == "clicked":
-            pass
 
 
 
