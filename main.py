@@ -129,6 +129,7 @@ class GameView(arcade.Window):
         # Kill all buttons
         for i in self.button_list:
             i.kill()
+        
         for i in self.player:
             i.kill()
 
@@ -149,8 +150,18 @@ class GameView(arcade.Window):
                 self.level1_button.center_x = WINDOW_WIDTH/2
                 self.level1_button.center_y = WINDOW_HEIGHT/2
 
+                self.level2_button = arcade.Sprite(self.l_L_texture)
+                self.level2_button.center_x = WINDOW_WIDTH/2
+                self.level2_button.center_y = WINDOW_HEIGHT/2 - 150
+
+                self.level3_button = arcade.Sprite(self.l_L_texture)
+                self.level3_button.center_x = WINDOW_WIDTH/2
+                self.level3_button.center_y = WINDOW_HEIGHT/2 - 300
+
                 self.button_list.append(self.back_button)
                 self.button_list.append(self.level1_button)
+                self.button_list.append(self.level2_button)
+                self.button_list.append(self.level3_button)
 
         else:
             
@@ -267,6 +278,8 @@ class GameView(arcade.Window):
                     self.home()
                 if self.level1_button in self.buttons_clicked:
                     self.level1_button.kill()
+                    for i in self.button_list:
+                        i.kill()
                     self.change_scene(False, 1)
             except:
                 pass
@@ -306,6 +319,16 @@ class GameView(arcade.Window):
         # Draw the line indicator
         if self.car_status == "clicked":
             LINE_LENGTH = 40
+            self.GRAVITY = 0.6
+            line_turtle = arcade.Sprite(center_x=self.car.center_x, center_y=self.car.center_y)
+            line_turtle.change_y = (self.car_spawn_y - self.car.center_y)
+            line_turtle.change_x = (self.car_spawn_x - self.car.center_x)
+            for i in range(1, LINE_LENGTH):
+                arcade.draw_circle_filled(line_turtle.center_x, line_turtle.center_y, 4, arcade.color.WHITE)
+                line_turtle.center_x += line_turtle.change_x
+                line_turtle.center_y += line_turtle.change_y
+                line_turtle.change_y -= self.GRAVITY
+            line_turtle.kill()
             
 
 
