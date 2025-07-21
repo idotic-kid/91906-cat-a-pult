@@ -92,8 +92,8 @@ class GameView(arcade.Window):
 
         # Make the play button sprite
         self.play_button = arcade.Sprite(self.play_texture)
-        self.play_button.center_x = WINDOW_WIDTH/2
-        self.play_button.center_y = WINDOW_HEIGHT/2
+        self.play_button.center_x = 200
+        self.play_button.center_y = 200
 
 
         # Spritelist (I think this reduces lag?)
@@ -103,7 +103,7 @@ class GameView(arcade.Window):
         self.player = arcade.SpriteList()
         self.fish = arcade.SpriteList()
 
-        self.car_spawn_x = 100
+        self.car_spawn_x = 300
         self.car_spawn_y = 400
 
         self.shoots = []
@@ -281,7 +281,7 @@ class GameView(arcade.Window):
         self.clear()
 
         # Useful circle
-        arcade.draw_circle_outline(self.car_spawn_x, self.car_spawn_y, 25, arcade.color.GREEN, 4)
+        # arcade.draw_circle_outline(self.car_spawn_x, self.car_spawn_y, 25, arcade.color.GREEN, 4)
         
         self.button_list.draw()
 
