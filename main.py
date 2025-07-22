@@ -1,5 +1,6 @@
 import arcade
 import math
+from random import randint
 
 from arcade.particles import (
     Emitter,
@@ -73,6 +74,7 @@ class GameView(arcade.Window):
         self.tilemap = None
         
         self.emitter = None
+
 
     def smooth_scale_to(self, sprite, scaleto):
         """Rescale sprite
@@ -269,7 +271,7 @@ class GameView(arcade.Window):
             if self.car_status == "clicked":
                 self.car_status = "flying"
                 self.car.lifetime = 5.0
-                self.physics_engine.add_sprite(self.car, collision_type="player", elasticity=0.8)
+                self.physics_engine.add_sprite(self.car, collision_type="player", elasticity=0.5)
                 self.launch_line_dots = []
                 self.physics_engine.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*2400, (self.car_spawn_y - self.car.center_y)*2400))
                 
@@ -314,6 +316,10 @@ class GameView(arcade.Window):
             # Draw trail        
             for i in self.launch_line_dots:
                 arcade.draw_circle_filled(i[0], i[1], 4, (255, 255, 255))
+
+            self.claw.draw_hit_box()
+
+
         except:
             pass
 
@@ -348,8 +354,23 @@ class GameView(arcade.Window):
             else:
                 self.smooth_scale_to(i, 1)
 
+
+
+        # Wood damage stages
+        try:
+            for i in self.wood:
+                if self.wood_hp[self.wood.index(i)] <=0:
+                    i.kill()
+                    i = None
+                else:
+                    i.texture = self.wood_textures[self.wood_hp[self.wood.index(i)]]
+        except:
+            pass
         
-                
+
+        
+
+        
 
         try:
             self.physics_engine.step()
@@ -365,20 +386,13 @@ class GameView(arcade.Window):
                 self.claw = None
             if self.car_status == "attacked":
                 self.claw.position = self.car.position
-                self.claw.angle += 15
+                self.claw.angle = self.claw.angle + 10
 
-            wood_hit = arcade.check_for_collision_with_list(self.claw, self.wood)
+            if randint(1, 3):
+                wood_hit = arcade.check_for_collision_with_list(self.claw, self.wood)
+            
             for i in wood_hit:
-                self.wood_hp[self.wood.index(i)] -=1
-
-            for i in self.wood:
-                if self.wood_hp[self.wood.index(i)] <=0:
-                    i.kill()
-                    i = None
-                else:
-                    i.texture = self.wood_textures[self.wood_hp[self.wood.index(i)]]
-
-
+                self.wood_hp[self.wood.index(i)] -=1 
 
         except:
             pass
@@ -397,15 +411,16 @@ class GameView(arcade.Window):
                 self.car.kill()
                 self.car = None
                 
-
+        # Spawn attack
         if self.car_status == "attacking":
             self.car_status = "attacked"
             self.claw = arcade.Sprite(self.claw_texture)
-            self.claw.lifetime = 0.5
+            self.claw.lifetime = 0.6
             self.claw.position = self.car.position
+            self.claw.angle = self.car.angle + 90
             self.scene.add_sprite("claw attack", self.claw)
 
-        
+
 
 
 
