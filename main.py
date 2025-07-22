@@ -17,7 +17,7 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Cat-a-pult!"
 TILE_LENGTH = 40
-GRAVITY = 1000 #This is a different gravity from self.gravity
+GRAVITY = 700 #This is a different gravity from self.gravity
 UPGRADES = []
 screen_history = []
 
@@ -273,7 +273,7 @@ class GameView(arcade.Window):
                 self.car.lifetime = 5.0
                 self.physics_engine.add_sprite(self.car, collision_type="player", elasticity=0.5)
                 self.launch_line_dots = []
-                self.physics_engine.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*2400, (self.car_spawn_y - self.car.center_y)*2400))
+                self.physics_engine.apply_force(self.car, ((self.car_spawn_x - self.car.center_x)*2000, (self.car_spawn_y - self.car.center_y)*2000))
                 
                 #((self.car_spawn_x - self.car.center_x)*1000, (self.car_spawn_y - self.car.center_y)*1000)
                 
@@ -367,9 +367,6 @@ class GameView(arcade.Window):
         except:
             pass
         
-
-        
-
         
 
         try:
@@ -377,6 +374,7 @@ class GameView(arcade.Window):
 
             # Camera movement if past middle
             self.camera.position = (arcade.math.clamp(self.car.center_x, WINDOW_WIDTH/2, self.map_length-(WINDOW_WIDTH/2)), WINDOW_HEIGHT/2)
+            
             self.launch_line_dots.append(self.car.position)
 
             # Claw attack code stuff here
