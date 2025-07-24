@@ -232,6 +232,7 @@ class GameView(arcade.Window):
 
                 #self.physics_engine.add_collision_handler("player", "ground", begin_handler=test1(), post_handler=test2())
             self.wood_hp = [3 for i in self.wood]
+            print(self.wood_hp)
 
 
                 
@@ -261,7 +262,7 @@ class GameView(arcade.Window):
             self.buttons_clicked = self.buttons_hovered
 
             # Check for player
-            if self.car_status != "clicked" and arcade.get_sprites_at_point((x, y), self.player):
+            if self.car_status == "none" and arcade.get_sprites_at_point((x, y), self.player):
                 self.car_status = "clicked"
 
 
@@ -316,10 +317,6 @@ class GameView(arcade.Window):
             # Draw trail        
             for i in self.launch_line_dots:
                 arcade.draw_circle_filled(i[0], i[1], 4, (255, 255, 255))
-
-            self.claw.draw_hit_box()
-
-
         except:
             pass
 
@@ -359,7 +356,7 @@ class GameView(arcade.Window):
         # Wood damage stages
         try:
             for i in self.wood:
-                if self.wood_hp[self.wood.index(i)] <=0:
+                if self.wood_hp[self.wood.index(i)] <0:
                     i.kill()
                     i = None
                 else:
@@ -384,13 +381,14 @@ class GameView(arcade.Window):
                 self.claw = None
             if self.car_status == "attacked":
                 self.claw.position = self.car.position
-                self.claw.angle = self.claw.angle + 10
+                self.claw.angle += self.claw.va
+                self.claw.va += self.claw.aa
 
             if randint(1, 3):
                 wood_hit = arcade.check_for_collision_with_list(self.claw, self.wood)
             
             for i in wood_hit:
-                self.wood_hp[self.wood.index(i)] -=1 
+                self.wood_hp[self.wood.index(i)] -=1
 
         except:
             pass
@@ -401,13 +399,15 @@ class GameView(arcade.Window):
                 if arcade.get_distance_between_sprites(self.car, i) <= 250:
                     print("close")
                     self.car_status = "attacking"
-            
-            # Despawn after 
+
+        try:
+            # Despawn after
             self.car.lifetime -= delta_time
             if self.car.lifetime <= 0:
-                self.car_status = "dead"
                 self.car.kill()
                 self.car = None
+        except:
+            pass
                 
         # Spawn attack
         if self.car_status == "attacking":
@@ -416,6 +416,8 @@ class GameView(arcade.Window):
             self.claw.lifetime = 0.6
             self.claw.position = self.car.position
             self.claw.angle = self.car.angle + 90
+            self.claw.va = 30
+            self.claw.aa = -1
             self.scene.add_sprite("claw attack", self.claw)
 
 
