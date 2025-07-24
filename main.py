@@ -223,7 +223,7 @@ class GameView(arcade.Window):
                 )
 
                 self.physics_engine.add_sprite_list(
-                    self.wood, collision_type="item", friction=3
+                    self.wood, collision_type="bricks", friction=3
                 )
                 self.physics_engine.add_sprite_list(
                     self.fish, collision_type="item"
@@ -231,11 +231,12 @@ class GameView(arcade.Window):
 
 
                 #self.physics_engine.add_collision_handler("player", "ground", begin_handler=test1(), post_handler=test2())
-            self.wood_hp = [3 for i in self.wood]
-            print(self.wood_hp)
+            for i in self.wood:
+                i.hp = 3
 
 
-                
+
+
     
 
 
@@ -310,9 +311,9 @@ class GameView(arcade.Window):
 
         try:
             self.scene.draw()
-            
+
             # debug hitbox
-            self.car.draw_hit_box()
+            self.scene.draw_hit_boxes()
 
             # Draw trail        
             for i in self.launch_line_dots:
@@ -351,21 +352,6 @@ class GameView(arcade.Window):
             else:
                 self.smooth_scale_to(i, 1)
 
-
-
-        # Wood damage stages
-        try:
-            for i in self.wood:
-                if self.wood_hp[self.wood.index(i)] <0:
-                    i.kill()
-                    i = None
-                else:
-                    i.texture = self.wood_textures[self.wood_hp[self.wood.index(i)]]
-        except:
-            pass
-        
-        
-
         try:
             self.physics_engine.step()
 
@@ -379,16 +365,23 @@ class GameView(arcade.Window):
             if self.claw.lifetime <= 0:
                 self.claw.kill()
                 self.claw = None
+
             if self.car_status == "attacked":
                 self.claw.position = self.car.position
                 self.claw.angle += self.claw.va
                 self.claw.va += self.claw.aa
 
-            if randint(1, 3):
-                wood_hit = arcade.check_for_collision_with_list(self.claw, self.wood)
+        
+            wood_hit = arcade.check_for_collision_with_list(self.claw, self.wood)
             
             for i in wood_hit:
-                self.wood_hp[self.wood.index(i)] -=1
+                i.hp -=1
+
+            for i in self.wood:
+                if i.hp <= 0:
+                    i.kill()
+                    i = None
+
 
         except:
             pass
@@ -419,6 +412,7 @@ class GameView(arcade.Window):
             self.claw.va = 30
             self.claw.aa = -1
             self.scene.add_sprite("claw attack", self.claw)
+
 
 
 

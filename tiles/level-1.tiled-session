@@ -9,19 +9,19 @@
     ],
     "fileStates": {
         "level-1.tmx": {
-            "scale": 1.1312,
-            "selectedLayer": 0,
+            "scale": 0.5221,
+            "selectedLayer": 3,
             "viewCenter": {
-                "x": 800.0353606789251,
-                "y": 394.7135785007072
+                "x": 800.6129094043287,
+                "y": 387.8567324267382
             }
         },
         "level-2.tmx": {
             "scale": 1,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 954,
-                "y": 584.5
+                "x": 955,
+                "y": 585.5
             }
         },
         "nice tiles.tsx": {
@@ -42,8 +42,8 @@
     ],
     "project": "level-1.tiled-project",
     "recentFiles": [
-        "nice tiles.tsx",
+        "level-1.tmx",
         "level-2.tmx",
-        "level-1.tmx"
+        "nice tiles.tsx"
     ]
 }
