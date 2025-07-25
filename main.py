@@ -46,6 +46,9 @@ def emitter_1(pos, n=50, speed=1.0, size=0.3, a=32):
             )
         return e
 
+def get_dist(pos1, pos2):
+    return arcade.math.get_distance(pos1[0], pos1[1], pos2[0], pos2[1])
+
 class GameView(arcade.Window):
     """
     Main application class.
@@ -187,7 +190,7 @@ class GameView(arcade.Window):
                 self.physics_engine = arcade.PymunkPhysicsEngine(gravity=(0, -GRAVITY))
 
                 self.tile_map = arcade.load_tilemap(
-                    "tiles/level-1.json",
+                    "tiles/level-1.tmx",
                     layer_options=layer_options,
                 )
 
@@ -309,21 +312,6 @@ class GameView(arcade.Window):
         
         self.button_list.draw()
 
-        try:
-            self.scene.draw()
-
-            # debug hitbox
-            #self.scene.draw_hit_boxes()
-
-            # Draw trail        
-            for i in self.launch_line_dots:
-                arcade.draw_circle_filled(i[0], i[1], 4, (255, 255, 255))
-        except:
-            pass
-
-
-        self.camera.use()
-
         # Draw the line indicator
         if self.car_status == "clicked":
             LINE_LENGTH = 10
@@ -337,6 +325,24 @@ class GameView(arcade.Window):
                 line_turtle.center_y += line_turtle.change_y
                 line_turtle.change_y -= self.GRAVITY
             line_turtle.kill()
+
+
+        # Draw active trail
+        for i in self.launch_line_dots:
+            arcade.draw_circle_filled(i[0], i[1], 4, (255, 255, 255))
+
+
+        # Draw our level scene
+        try:
+            self.scene.draw()
+
+            # debug hitbox
+            #self.scene.draw_hit_boxes()
+
+        except:
+            pass
+
+        self.camera.use()
             
 
 
@@ -358,7 +364,8 @@ class GameView(arcade.Window):
             # Camera movement if past middle
             self.camera.position = (arcade.math.clamp(self.car.center_x, WINDOW_WIDTH/2, self.map_length-(WINDOW_WIDTH/2)), WINDOW_HEIGHT/2)
             
-            self.launch_line_dots.append(self.car.position)
+            if not self.car_status in "none clicked":
+                self.launch_line_dots.append(self.car.position)
 
             # Claw attack code stuff here
             self.claw.lifetime -= delta_time
