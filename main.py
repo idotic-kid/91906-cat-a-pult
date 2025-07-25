@@ -208,8 +208,7 @@ class GameView(arcade.Window):
                 self.car = arcade.Sprite(self.muffin_texture)
                 self.car.center_x = self.car_spawn_x
                 self.car.center_y = self.car_spawn_y
-                self.car.scale = 0.7
-                
+                self.car.scale = 0.7                
 
                 self.player.append(self.car)
 
@@ -233,6 +232,7 @@ class GameView(arcade.Window):
                 #self.physics_engine.add_collision_handler("player", "ground", begin_handler=test1(), post_handler=test2())
             for i in self.wood:
                 i.hp = 3
+                i.type = i.texture
 
 
 
@@ -313,7 +313,7 @@ class GameView(arcade.Window):
             self.scene.draw()
 
             # debug hitbox
-            self.scene.draw_hit_boxes()
+            #self.scene.draw_hit_boxes()
 
             # Draw trail        
             for i in self.launch_line_dots:
