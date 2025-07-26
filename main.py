@@ -1,6 +1,7 @@
 import arcade
 import math
 from random import randint
+from arcade.particles import make_interval_emitter
 
 
 # Constants
@@ -45,6 +46,10 @@ class GameView(arcade.Window):
         self.camera = None
 
         self.tilemap = None
+
+
+        self.emitter = None
+
         
 
 
@@ -255,6 +260,19 @@ class GameView(arcade.Window):
             if self.car_status == "none" and arcade.get_sprites_at_point((x, y), self.player):
                 self.car_status = "clicked"
 
+        else:
+            self.emitter = make_interval_emitter(
+                center_xy=(x, y),
+                filenames_and_textures=(self.muffin_texture, self.claw_texture),
+                emit_duration=0.05,
+                emit_interval=0.001,
+                particle_speed=4,
+                particle_lifetime_max=0.3,
+                particle_lifetime_min=0.05,
+                particle_scale=0.2,
+                fade_particles=True
+            )
+
 
         
     def on_mouse_release(self, x, y, button, modifiers):
@@ -293,6 +311,9 @@ class GameView(arcade.Window):
 
         # Clear the screen to the background color
         self.clear()
+
+        if self.emitter:
+            self.emitter.draw()
         
         self.button_list.draw()
 
@@ -334,6 +355,9 @@ class GameView(arcade.Window):
 
     def on_update(self, delta_time):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
+
+        if self.emitter:
+            self.emitter.update()
 
         if self.fish_left<=0:
             self.change_scene(True, 1)
