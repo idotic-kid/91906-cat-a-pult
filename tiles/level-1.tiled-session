@@ -9,11 +9,11 @@
     ],
     "fileStates": {
         "level-1.tmx": {
-            "scale": 2,
+            "scale": 1.1487,
             "selectedLayer": 3,
             "viewCenter": {
-                "x": 800.25,
-                "y": 399.75
+                "x": 1139.5490554539915,
+                "y": 583.268042134587
             }
         },
         "level-2.tmx": {
@@ -21,7 +21,7 @@
             "selectedLayer": 1,
             "viewCenter": {
                 "x": 1000,
-                "y": 400.6666666666667
+                "y": 400
             }
         },
         "nice tiles.tsx": {
