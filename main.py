@@ -40,6 +40,7 @@ class GameView(arcade.Window):
 
         self.car_status = "none"
         self.cars_left = 0
+        self.fish_left = 999
 
         self.camera = None
 
@@ -113,6 +114,12 @@ class GameView(arcade.Window):
             }
         }
 
+        # Clears scene
+        self.scene = None
+        self.fish_left = 999
+        self.launch_line_dots = []
+
+
         # Kill all buttons
         for i in self.button_list:
             i.kill()
@@ -125,6 +132,8 @@ class GameView(arcade.Window):
         if is_menu:
             # Menu 1 screen 1 (level select)
             if screen_id == 1:
+                self.background_color = arcade.csscolor.BURLYWOOD
+
                 self.back_texture = arcade.load_texture("assets/button-back.png")
                 self.l_1_texture = arcade.load_texture("assets/button-level-1.png")
                 self.l_L_texture = arcade.load_texture("assets/button-level-locked.png")
@@ -183,6 +192,8 @@ class GameView(arcade.Window):
             for i in self.wood:
                 i.hp = 3
                 i.type = i.texture
+
+            self.fish_left = len(self.fish)
 
             self.scene = arcade.Scene.from_tilemap(self.tile_map)
 
@@ -315,7 +326,6 @@ class GameView(arcade.Window):
         except:
             pass
 
-
         self.camera.use()
 
         
@@ -324,6 +334,9 @@ class GameView(arcade.Window):
 
     def on_update(self, delta_time):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
+
+        if self.fish_left<=0:
+            self.change_scene(True, 1)
 
         # Button smooth animation
         for i in self.button_list:
@@ -365,7 +378,12 @@ class GameView(arcade.Window):
                 if i.hp <= 0:
                     i.kill()
                     i = None
-
+            
+            fish_hit = arcade.check_for_collision_with_list(self.claw, self.fish)
+            for i in fish_hit:
+                i.kill()
+                i = None
+                self.fish_left -= 1
 
         except:
             pass
@@ -377,8 +395,8 @@ class GameView(arcade.Window):
                     print("close")
                     self.car_status = "attacking"
 
+        # Cat despawn and respawn
         try:
-            # Despawn after
             self.car.lifetime -= delta_time
             if self.car.lifetime <= 0:
                 self.car.kill()
