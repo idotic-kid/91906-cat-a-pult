@@ -18,6 +18,19 @@ screen_history = []
 def get_dist(pos1, pos2):
     return arcade.math.get_distance(pos1[0], pos1[1], pos2[0], pos2[1])
 
+def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
+    return make_interval_emitter(
+                    center_xy=position,
+                    filenames_and_textures=textures,
+                    emit_duration=0.2,
+                    emit_interval=0.03,
+                    particle_speed=2,
+                    particle_lifetime_max=0.5,
+                    particle_lifetime_min=0.3,
+                    particle_scale=0.5,
+                    fade_particles=True
+                )
+
 class GameView(arcade.Window):
     """
     Main application class.
@@ -32,6 +45,7 @@ class GameView(arcade.Window):
         self.background_color = arcade.csscolor.BURLYWOOD
         self.muffin_texture = arcade.load_texture("assets/muffin.png")
         self.claw_texture = arcade.load_texture("assets/slash.png")
+        self.fish_texture = arcade.load_texture("tiles/fish.png")
         
         #load home screen buttons textures
         self.play_texture = arcade.load_texture("assets/button-play.png")
@@ -48,7 +62,7 @@ class GameView(arcade.Window):
         self.tilemap = None
 
 
-        self.emitter = None
+        self.emitter = []
 
         
 
@@ -261,17 +275,7 @@ class GameView(arcade.Window):
                 self.car_status = "clicked"
 
         else:
-            self.emitter = make_interval_emitter(
-                center_xy=(x, y),
-                filenames_and_textures=(self.muffin_texture, self.claw_texture),
-                emit_duration=0.05,
-                emit_interval=0.001,
-                particle_speed=4,
-                particle_lifetime_max=0.3,
-                particle_lifetime_min=0.05,
-                particle_scale=0.2,
-                fade_particles=True
-            )
+            pass
 
 
         
@@ -313,7 +317,8 @@ class GameView(arcade.Window):
         self.clear()
 
         if self.emitter:
-            self.emitter.draw()
+            for i in self.emitter:
+                i.draw()
         
         self.button_list.draw()
 
@@ -357,10 +362,13 @@ class GameView(arcade.Window):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
         if self.emitter:
-            self.emitter.update()
+            for i in self.emitter:
+                i.update()
 
-        if self.fish_left<=0:
-            self.change_scene(True, 1)
+        if self.fish_left <= 0:
+            self.fish_left -= delta_time
+            if self.fish_left <= -1:
+                self.change_scene(True, 1)
 
         # Button smooth animation
         for i in self.button_list:
@@ -406,6 +414,7 @@ class GameView(arcade.Window):
             fish_hit = arcade.check_for_collision_with_list(self.claw, self.fish)
             for i in fish_hit:
                 i.kill()
+                self.emitter.append(particle_burst((self.fish_texture, self.fish_texture), i.position))
                 i = None
                 self.fish_left -= 1
 
@@ -423,6 +432,7 @@ class GameView(arcade.Window):
         try:
             self.car.lifetime -= delta_time
             if self.car.lifetime <= 0:
+                self.emitter.append(particle_burst((self.muffin_texture, self.muffin_texture), self.car.position))
                 self.car.kill()
                 self.car = None
                 if self.cars_left>0:
