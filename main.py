@@ -242,6 +242,8 @@ class GameView(arcade.Window):
             
             if screen_id == 1:
                 self.cars_left = 5
+            if screen_id == 2:
+                self.cars_left = 99
 
 
             
@@ -304,6 +306,9 @@ class GameView(arcade.Window):
                     for i in self.button_list:
                         i.kill()
                     self.change_scene(False, 1)
+
+                if self.level2_button in self.buttons_clicked:
+                    self.change_scene(False, 2)
             except:
                 pass
             self.buttons_clicked = []
@@ -344,7 +349,10 @@ class GameView(arcade.Window):
         # Draw our level scene
         try:
             self.scene.draw()
-            arcade.draw_text(f"cars left {self.cars_left}", 100, 100, font_size=30)
+            if self.cars_left > 0:
+                arcade.draw_text(f"cars left {self.cars_left}", 100, 100, font_size=30)
+            else:
+                arcade.draw_text("no cars left to catapult damn you suck at this game", 100, 100, font_size=30)
 
             # debug hitbox
             #self.scene.draw_hit_boxes()
