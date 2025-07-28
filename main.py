@@ -38,6 +38,9 @@ def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
 
 
 
+class Button(arcade.Sprite):
+    pass
+
 class GameView(arcade.Window):
     """
     Main application class.
@@ -146,6 +149,8 @@ class GameView(arcade.Window):
         self.fish_left = 999
         self.launch_line_dots = []
 
+        for i in self.button_list:
+            i.kill()
 
         for i in self.player:
             i.kill()
@@ -313,9 +318,13 @@ class GameView(arcade.Window):
                     self.home()
 
                 if self.level1_button in self.buttons_clicked:
+                    for i in self.button_list:
+                        i.kill()
                     self.change_scene(False, 1)
 
                 if self.level2_button in self.buttons_clicked:
+                    for i in self.button_list:
+                        i.kill()
                     self.change_scene(False, 2)
                 
             except:
