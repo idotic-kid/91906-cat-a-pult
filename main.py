@@ -16,6 +16,11 @@ screen_history = []
 
 
 def get_dist(pos1, pos2):
+    '''arcade get distance but with 2 tuples instead of 4 numbers
+    args
+    pos1 (tuple) the first x and y coords
+    pos2 (tuple the second x and y coords
+    outputs the distance as a number'''
     return arcade.math.get_distance(pos1[0], pos1[1], pos2[0], pos2[1])
 
 def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
@@ -30,6 +35,8 @@ def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
                     particle_scale=0.5,
                     fade_particles=True
                 )
+
+
 
 class GameView(arcade.Window):
     """
@@ -74,7 +81,6 @@ class GameView(arcade.Window):
         scaleto = new scale"""
         sprite.scale_x += (scaleto-sprite.scale_x)/5
         sprite.scale_y += (scaleto-sprite.scale_y)/5
-
 
 
 
@@ -135,19 +141,18 @@ class GameView(arcade.Window):
 
         # Clears scene
         self.scene = None
+        self.emitter = []
+
         self.fish_left = 999
         self.launch_line_dots = []
 
 
-        # Kill all buttons
-        for i in self.button_list:
-            i.kill()
-        
         for i in self.player:
             i.kill()
 
         self.map_length = 1280
-
+        
+        # Menus
         if is_menu:
             # Menu 1 screen 1 (level select)
             if screen_id == 1:
@@ -181,8 +186,9 @@ class GameView(arcade.Window):
             # level win screen
             if screen_id == 5:
                 pass
-
-        else:
+        
+        # Levels
+        else:            
             self.background_color = (124, 244, 255)
 
             # Loading textures
@@ -267,6 +273,7 @@ class GameView(arcade.Window):
 
 
     def on_mouse_press(self, x, y, button, modifiers):
+        '''Does stuff when the mouse pressed'''
         if button == arcade.MOUSE_BUTTON_LEFT:
             
             # Check for buttons being clicked
@@ -282,6 +289,8 @@ class GameView(arcade.Window):
 
         
     def on_mouse_release(self, x, y, button, modifiers):
+        '''Does stuff when the mouse released'''
+
         if button == arcade.MOUSE_BUTTON_LEFT:
             if self.car_status == "clicked":
                 self.cars_left -=1
@@ -299,16 +308,16 @@ class GameView(arcade.Window):
             try:
                 if self.play_button in self.buttons_clicked:
                     self.change_scene(True, 1)
+
                 if self.back_button in self.buttons_clicked:
                     self.home()
+
                 if self.level1_button in self.buttons_clicked:
-                    self.level1_button.kill()
-                    for i in self.button_list:
-                        i.kill()
                     self.change_scene(False, 1)
 
                 if self.level2_button in self.buttons_clicked:
                     self.change_scene(False, 2)
+                
             except:
                 pass
             self.buttons_clicked = []
@@ -363,8 +372,6 @@ class GameView(arcade.Window):
         self.camera.use()
 
         
-            
-
 
     def on_update(self, delta_time):
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
@@ -440,7 +447,8 @@ class GameView(arcade.Window):
         try:
             self.car.lifetime -= delta_time
             if self.car.lifetime <= 0:
-                self.emitter.append(particle_burst((self.muffin_texture, self.muffin_texture), self.car.position))
+                if 0 <self.fish_left<999:
+                    self.emitter.append(particle_burst((self.muffin_texture, self.muffin_texture), self.car.position))
                 self.car.kill()
                 self.car = None
                 if self.cars_left>0:
