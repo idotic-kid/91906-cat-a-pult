@@ -2,6 +2,7 @@ import arcade
 import math
 from random import randint
 from arcade.particles import make_interval_emitter
+from arcade.gui import UITextureButton
 
 
 # Constants
@@ -39,9 +40,40 @@ def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
 
 
 class Button(arcade.Sprite):
-    pass
+    def __init__(self, scene, path_or_texture = None, center_x = 0, center_y = 0, scale = 1, angle = 0,):
+        super().__init__(path_or_texture, scale, center_x, center_y, angle)
+        self.scene = scene
 
-class GameView(arcade.Window):
+    def on_click(self):
+        self.change_scene(self.scene)
+
+
+
+class MainMenu(arcade.View):
+    def on_show_view(self):
+        """ When first switched to this view run this code yk """
+        self.window.background_color = arcade.csscolor.BURLYWOOD
+
+        # Reset the viewport, necessary if we have a scrolling game and we need
+        # to reset the viewport back to the start so we can see what we draw.
+        self.window.default_camera.use()
+
+    def on_draw(self):
+        """ Draw this view """
+        self.clear()
+        arcade.draw_text("Cat-a-pult!", self.window.width / 2, self.window.height / 2,
+                         arcade.color.WHITE, font_size=50, anchor_x="center")
+        arcade.draw_text("Play", self.window.width / 2, self.window.height / 2-75,
+                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        
+    def on_mouse_press(self, _x, _y, _button, _modifiers):
+        """ This code checks for clicks and buttons probably """
+        game_view = GameView()
+        game_view.home()
+        self.window.show_view(game_view)
+
+
+class GameView(arcade.View):
     """
     Main application class.
     """
@@ -49,7 +81,7 @@ class GameView(arcade.Window):
     def __init__(self):
 
         # Call the parent class and set up the window
-        super().__init__(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=False)
+        super().__init__()
         self.highscore = 0
 
         self.background_color = arcade.csscolor.BURLYWOOD
@@ -74,7 +106,14 @@ class GameView(arcade.Window):
 
         self.emitter = []
 
-        
+        # Setting up camera
+        self.camera = arcade.camera.Camera2D()
+        self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
+
+    def on_show_view(self):
+        self.change_scene(True, 1)
+
+
 
 
     def smooth_scale_to(self, sprite, scaleto):
@@ -89,10 +128,6 @@ class GameView(arcade.Window):
 
     def home(self):
         """Function for the home screen"""
-
-        self.camera = arcade.camera.Camera2D()
-        self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
-
 
         self.background_color = arcade.csscolor.BURLYWOOD
 
@@ -114,9 +149,12 @@ class GameView(arcade.Window):
 
         self.launch_line_dots = []
 
-    def spawn_car(self, x, y, car_type="muffin"):
-        self.car_status = "none"
+        self.testbutton = Button(scene=(True, 1), path_or_texture=self.play_texture, center_x=100, center_y=100)
+        self.button_list.append(self.testbutton)
 
+
+    def setup_car(self, x, y, car_type="muffin"):
+        self.car_status = "none"
         self.car = arcade.Sprite(self.muffin_texture)
         self.car.center_x = x
         self.car.center_y = y
@@ -167,9 +205,9 @@ class GameView(arcade.Window):
                 self.l_1_texture = arcade.load_texture("assets/button-level-1.png")
                 self.l_L_texture = arcade.load_texture("assets/button-level-locked.png")
 
-                self.back_button = arcade.Sprite(self.back_texture)
-                self.back_button.center_x = 50
-                self.back_button.center_y = WINDOW_HEIGHT-50
+                #self.back_button = arcade.Sprite(self.back_texture)
+                #self.back_button.center_x = 50
+                #self.back_button.center_y = WINDOW_HEIGHT-50
 
                 self.level1_button = arcade.Sprite(self.l_1_texture)
                 self.level1_button.center_x = WINDOW_WIDTH/2
@@ -183,7 +221,7 @@ class GameView(arcade.Window):
                 self.level3_button.center_x = WINDOW_WIDTH/2
                 self.level3_button.center_y = WINDOW_HEIGHT/2 - 300
 
-                self.button_list.append(self.back_button)
+                #self.button_list.append(self.back_button)
                 self.button_list.append(self.level1_button)
                 self.button_list.append(self.level2_button)
                 self.button_list.append(self.level3_button)
@@ -246,7 +284,7 @@ class GameView(arcade.Window):
 
 
             # Spawn player
-            self.spawn_car(self.car_spawn_x, self.car_spawn_y)
+            self.setup_car(self.car_spawn_x, self.car_spawn_y)
 
 
             # Level 1
@@ -344,6 +382,7 @@ class GameView(arcade.Window):
                 i.draw()
         
         self.button_list.draw()
+
 
         # Draw the line indicator
         if self.car_status == "clicked":
@@ -461,7 +500,7 @@ class GameView(arcade.Window):
                 self.car.kill()
                 self.car = None
                 if self.cars_left>0:
-                    self.spawn_car(self.car_spawn_x, self.car_spawn_y)
+                    self.setup_car(self.car_spawn_x, self.car_spawn_y)
         except:
             pass
                 
@@ -483,13 +522,11 @@ class GameView(arcade.Window):
 
 
 
-
-
-
 def main():
     """Main function"""
-    window = GameView()
-    window.home()
+    window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=False)
+    start_view = MainMenu()
+    window.show_view(start_view)
     arcade.run()
 
 
