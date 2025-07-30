@@ -37,40 +37,95 @@ def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
                     fade_particles=True
                 )
 
+def smooth_scale_to(sprite, scaleto):
+        """Rescale sprite
+        args:
+        sprite = sprite to be rescaled
+        scaleto = new scale"""
+        sprite.scale_x += (scaleto-sprite.scale_x)/5
+        sprite.scale_y += (scaleto-sprite.scale_y)/5
 
 
 class Button(arcade.Sprite):
     def __init__(self, scene, path_or_texture = None, center_x = 0, center_y = 0, scale = 1, angle = 0,):
         super().__init__(path_or_texture, scale, center_x, center_y, angle)
         self.scene = scene
+        self.click_status = "none"
 
-    def on_click(self):
-        self.change_scene(self.scene)
+    def update(self, delta_time):
+        if self.click_status == "clicked":
+            smooth_scale_to(self, 0.9)
+        elif self.click_status == "hovered":
+            smooth_scale_to(self, 1.1)
+        else:
+            smooth_scale_to(self, 1)
 
 
 
-class MainMenu(arcade.View):
+class TitleView(arcade.View):
     def on_show_view(self):
         """ When first switched to this view run this code yk """
+
+        # Background color duh
         self.window.background_color = arcade.csscolor.BURLYWOOD
 
         # Reset the viewport, necessary if we have a scrolling game and we need
         # to reset the viewport back to the start so we can see what we draw.
         self.window.default_camera.use()
 
+        # Setup buttons
+        self.button_list = arcade.SpriteList(True)
+        self.buttons_hovered = []
+
+        self.new_run_button = Button(
+            GameView(),
+            arcade.load_texture("assets/button-play.png"),
+            self.window.width / 2,
+            self.window.height / 2-75)
+        self.button_list.append(self.new_run_button)
+
+
     def on_draw(self):
         """ Draw this view """
         self.clear()
+
         arcade.draw_text("Cat-a-pult!", self.window.width / 2, self.window.height / 2,
                          arcade.color.WHITE, font_size=50, anchor_x="center")
-        arcade.draw_text("Play", self.window.width / 2, self.window.height / 2-75,
-                         arcade.color.WHITE, font_size=20, anchor_x="center")
+        
+        self.button_list.draw()
+        
         
     def on_mouse_press(self, _x, _y, _button, _modifiers):
         """ This code checks for clicks and buttons probably """
-        game_view = GameView()
-        game_view.home()
-        self.window.show_view(game_view)
+        for i in self.button_list:
+            if i in self.buttons_hovered:
+                i.click_status="clicked"
+            else:
+                i.click_status="none"
+
+    def on_mouse_motion(self, x, y, dx, dy):
+        """Code that runs when the mouse moves"""
+        self.buttons_hovered = arcade.get_sprites_at_point((x, y), self.button_list)
+
+        for i in self.button_list:
+            if i.click_status !="clicked":
+                if i in self.buttons_hovered:
+                    i.click_status = "hovered"
+                else:
+                    i.click_status = "none"
+        
+    
+    def on_mouse_release(self, x, y, button, modifiers):
+        if self.new_run_button.click_status == "clicked":
+            self.window.show_view(self.new_run_button.scene)
+
+    def on_update(self, delta_time):
+        self.button_list.update()
+
+
+        
+
+
 
 
 class GameView(arcade.View):
@@ -79,7 +134,6 @@ class GameView(arcade.View):
     """
 
     def __init__(self):
-
         # Call the parent class and set up the window
         super().__init__()
         self.highscore = 0
@@ -89,9 +143,8 @@ class GameView(arcade.View):
         self.claw_texture = arcade.load_texture("assets/slash.png")
         self.fish_texture = arcade.load_texture("tiles/fish.png")
         
-        #load home screen buttons textures
-        self.play_texture = arcade.load_texture("assets/button-play.png")
-
+        # Button lists
+        self.button_list = arcade.SpriteList(True)
         self.buttons_hovered = []
         self.buttons_clicked = []
 
@@ -110,47 +163,15 @@ class GameView(arcade.View):
         self.camera = arcade.camera.Camera2D()
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
-    def on_show_view(self):
-        self.change_scene(True, 1)
-
-
-
-
-    def smooth_scale_to(self, sprite, scaleto):
-        """Rescale sprite
-        args:
-        sprite = sprite to be rescaled
-        scaleto = new scale"""
-        sprite.scale_x += (scaleto-sprite.scale_x)/5
-        sprite.scale_y += (scaleto-sprite.scale_y)/5
-
-
-
-    def home(self):
-        """Function for the home screen"""
-
-        self.background_color = arcade.csscolor.BURLYWOOD
-
-        # Make the play button sprite
-        self.play_button = arcade.Sprite(self.play_texture)
-        self.play_button.center_x = 200
-        self.play_button.center_y = 200
-
-
-        # Spritelist (I think this reduces lag?)
-        self.button_list = arcade.SpriteList(True)
-        self.button_list.append(self.play_button)
-        
         self.player = arcade.SpriteList()
         self.fish = arcade.SpriteList()
 
-        self.car_spawn_x = 300
-        self.car_spawn_y = 200
+
 
         self.launch_line_dots = []
 
-        self.testbutton = Button(scene=(True, 1), path_or_texture=self.play_texture, center_x=100, center_y=100)
-        self.button_list.append(self.testbutton)
+    def on_show_view(self):
+        self.change_scene(True, 1)
 
 
     def setup_car(self, x, y, car_type="muffin"):
@@ -282,18 +303,17 @@ class GameView(arcade.View):
                 self.fish, collision_type="fish"
             )
 
-
-            # Spawn player
-            self.setup_car(self.car_spawn_x, self.car_spawn_y)
-
-
             # Level 1
             
             if screen_id == 1:
                 self.cars_left = 5
+                self.car_spawn_x = 300
+                self.car_spawn_y = 200  
             if screen_id == 2:
                 self.cars_left = 99
 
+            # Spawn player
+            self.setup_car(self.car_spawn_x, self.car_spawn_y)
 
             
 
@@ -349,12 +369,6 @@ class GameView(arcade.View):
 
             # Button click event scripts
             try:
-                if self.play_button in self.buttons_clicked:
-                    self.change_scene(True, 1)
-
-                if self.back_button in self.buttons_clicked:
-                    self.home()
-
                 if self.level1_button in self.buttons_clicked:
                     for i in self.button_list:
                         i.kill()
@@ -368,7 +382,6 @@ class GameView(arcade.View):
             except:
                 pass
             self.buttons_clicked = []
-            self.play_button.color = 255, 255, 255
                 
 
     def on_draw(self):
@@ -432,15 +445,6 @@ class GameView(arcade.View):
             self.fish_left -= delta_time
             if self.fish_left <= -1:
                 self.change_scene(True, 1)
-
-        # Button smooth animation
-        for i in self.button_list:
-            if i in self.buttons_clicked:
-                self.smooth_scale_to(i, 0.9)
-            elif i in self.buttons_hovered:
-                self.smooth_scale_to(i, 1.1)
-            else:
-                self.smooth_scale_to(i, 1)
 
         try:
             self.physics_engine.step()
@@ -525,7 +529,7 @@ class GameView(arcade.View):
 def main():
     """Main function"""
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=False)
-    start_view = MainMenu()
+    start_view = TitleView()
     window.show_view(start_view)
     arcade.run()
 
