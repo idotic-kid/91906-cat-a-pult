@@ -2,8 +2,7 @@ import arcade
 import math
 from random import randint
 from arcade.particles import make_interval_emitter
-from arcade.gui import UITextureButton
-
+from arcade.gui import UITextureButton, UIManager
 
 # Constants
 WINDOW_WIDTH = 1280
@@ -12,7 +11,9 @@ WINDOW_TITLE = "Cat-a-pult!"
 TILE_LENGTH = 40
 GRAVITY = 600 #This is a different gravity from self.gravity
 UPGRADES = []
+screen_right_now = "title"
 screen_history = []
+file = open("save_state.txt")
 
 
 
@@ -37,32 +38,43 @@ def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
                     fade_particles=True
                 )
 
-def smooth_scale_to(sprite, scaleto):
-        """Rescale sprite
-        args:
-        sprite = sprite to be rescaled
-        scaleto = new scale"""
-        sprite.scale_x += (scaleto-sprite.scale_x)/5
-        sprite.scale_y += (scaleto-sprite.scale_y)/5
 
 
-class Button(arcade.Sprite):
-    def __init__(self, scene, path_or_texture = None, center_x = 0, center_y = 0, scale = 1, angle = 0,):
-        super().__init__(path_or_texture, scale, center_x, center_y, angle)
+class Button(UITextureButton):
+    def __init__(self, scene, x = 0, y = 0, texture = None, text = ""):
+        super().__init__(x=x, y=y, texture=texture, text=text)
         self.scene = scene
-        self.click_status = "none"
+        self.click_status = "normal"
 
-    def update(self, delta_time):
-        if self.click_status == "clicked":
-            smooth_scale_to(self, 0.9)
-        elif self.click_status == "hovered":
-            smooth_scale_to(self, 1.1)
-        else:
-            smooth_scale_to(self, 1)
+        self.original_position = (x, y)
+        self.original_width = self.width
+        self.original_height = self.height
+        self.current_scale = 1.0
+        self.target_scale = 1.0
+
+    def on_update(self, delta_time):
+        self.click_status = self.get_current_state()
+        
+        if self.click_status == "press":
+            self.target_scale = 0.9
+        elif self.click_status == "hover":
+            self.target_scale = 1.1
+        else:  
+            self.target_scale = 1.0
+            
+        self.current_scale += (self.target_scale - self.current_scale)/5
+        self.width = self.original_width * self.current_scale
+        self.height = self.original_height * self.current_scale
+        self.center_x = self.original_position[0]
+        self.center_y = self.original_position[1]
+
+    def on_release(self):
+        pass
 
 
 
-class TitleView(arcade.View):
+
+class MenuView(arcade.View):
     def on_show_view(self):
         """ When first switched to this view run this code yk """
 
@@ -73,16 +85,24 @@ class TitleView(arcade.View):
         # to reset the viewport back to the start so we can see what we draw.
         self.window.default_camera.use()
 
-        # Setup buttons
-        self.button_list = arcade.SpriteList(True)
-        self.buttons_hovered = []
+        # Button handling but good
+        self.manager = UIManager()
+        self.manager.enable()
 
-        self.new_run_button = Button(
-            GameView(),
-            arcade.load_texture("assets/button-play.png"),
-            self.window.width / 2,
-            self.window.height / 2-75)
-        self.button_list.append(self.new_run_button)
+
+        # I do think the easiest way to do this is to have one view for all of
+        # the menus together because if I had multiple views I would need to
+        # duplicate all of the button code and that would be redundant and
+        # annoying and difficult to read.
+
+        if screen_right_now == "title":
+            self.new_run_button = Button(
+                GameView(),
+                self.window.width / 2,
+                self.window.height / 2-75, 
+                arcade.load_texture("assets/button-play.png"),
+            )
+            self.manager.add(self.new_run_button)
 
 
     def on_draw(self):
@@ -92,38 +112,18 @@ class TitleView(arcade.View):
         arcade.draw_text("Cat-a-pult!", self.window.width / 2, self.window.height / 2,
                          arcade.color.WHITE, font_size=50, anchor_x="center")
         
-        self.button_list.draw()
-        
-        
-    def on_mouse_press(self, _x, _y, _button, _modifiers):
-        """ This code checks for clicks and buttons probably """
-        for i in self.button_list:
-            if i in self.buttons_hovered:
-                i.click_status="clicked"
-            else:
-                i.click_status="none"
-
-    def on_mouse_motion(self, x, y, dx, dy):
-        """Code that runs when the mouse moves"""
-        self.buttons_hovered = arcade.get_sprites_at_point((x, y), self.button_list)
-
-        for i in self.button_list:
-            if i.click_status !="clicked":
-                if i in self.buttons_hovered:
-                    i.click_status = "hovered"
-                else:
-                    i.click_status = "none"
-        
-    
-    def on_mouse_release(self, x, y, button, modifiers):
-        if self.new_run_button.click_status == "clicked":
-            self.window.show_view(self.new_run_button.scene)
+        self.manager.draw()
 
     def on_update(self, delta_time):
-        self.button_list.update()
-
-
+        self.manager.on_update(delta_time)
+        print(self.new_run_button.click_status)
         
+
+    def on_mouse_release(self, x, y, button, modifiers):
+        if self.new_run_button.click_status == "press":
+            self.window.show_view(self.new_run_button.scene)
+    
+
 
 
 
@@ -148,14 +148,14 @@ class GameView(arcade.View):
         self.buttons_hovered = []
         self.buttons_clicked = []
 
+        # car and fish
+        self.player = arcade.SpriteList()
+        self.fish = arcade.SpriteList()
         self.car_status = "none"
         self.cars_left = 0
         self.fish_left = 999
 
-        self.camera = None
-
         self.tilemap = None
-
 
         self.emitter = []
 
@@ -163,8 +163,7 @@ class GameView(arcade.View):
         self.camera = arcade.camera.Camera2D()
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
-        self.player = arcade.SpriteList()
-        self.fish = arcade.SpriteList()
+
 
 
 
@@ -499,12 +498,13 @@ class GameView(arcade.View):
         try:
             self.car.lifetime -= delta_time
             if self.car.lifetime <= 0:
-                if 0 <self.fish_left<999:
+                if 0 <self.fish_left<999 and self.car.lifetime >= -0.1:
                     self.emitter.append(particle_burst((self.muffin_texture, self.muffin_texture), self.car.position))
                 self.car.kill()
-                self.car = None
                 if self.cars_left>0:
-                    self.setup_car(self.car_spawn_x, self.car_spawn_y)
+                    if self.car.lifetime <= -0.5:
+                        self.car = None
+                        self.setup_car(self.car_spawn_x, self.car_spawn_y)
         except:
             pass
                 
@@ -529,7 +529,7 @@ class GameView(arcade.View):
 def main():
     """Main function"""
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=False)
-    start_view = TitleView()
+    start_view = MenuView()
     window.show_view(start_view)
     arcade.run()
 
