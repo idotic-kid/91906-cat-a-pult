@@ -3,25 +3,33 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "level-1.tmx",
+    "activeFile": "level-2.tmx",
     "expandedProjectPaths": [
         "."
     ],
     "fileStates": {
         "level-1.tmx": {
-            "scale": 1.1487,
-            "selectedLayer": 3,
+            "scale": 0.6321,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 1139.5490554539915,
-                "y": 583.268042134587
+                "x": 390.7609555450087,
+                "y": 541.0536307546274
             }
         },
         "level-2.tmx": {
-            "scale": 0.75,
-            "selectedLayer": 1,
+            "scale": 0.5361,
+            "selectedLayer": 2,
             "viewCenter": {
-                "x": 1000,
-                "y": 400
+                "x": 798.3585152023875,
+                "y": 654.7285954113039
+            }
+        },
+        "level-3.tmx": {
+            "scale": 0.5938,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 621.4213539912429,
+                "y": 385.6517345907713
             }
         },
         "nice tiles.tsx": {
@@ -31,7 +39,7 @@
         }
     },
     "last.exportedFilePath": "//wbfp02.westlake.local/shomes/em21236/Documents/13DTP/91906-cat-a-pult/tiles",
-    "last.imagePath": "//wbfp02.westlake.local/shomes/em21236/Documents/13DTP/91906-cat-a-pult/tiles",
+    "last.imagePath": "/Users/idotic_kid/Documents/91906-cat-a-pult/tiles",
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 40,
@@ -43,8 +51,8 @@
     ],
     "project": "level-1.tiled-project",
     "recentFiles": [
+        "level-1.tmx",
         "nice tiles.tsx",
-        "level-2.tmx",
-        "level-1.tmx"
+        "level-2.tmx"
     ]
 }

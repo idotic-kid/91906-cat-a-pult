@@ -11,6 +11,7 @@ WINDOW_TITLE = "Cat-a-pult!"
 TILE_LENGTH = 40
 GRAVITY = 600 #This is a different gravity from self.gravity
 UPGRADES = []
+current_level = 0
 screen_history = []
 file = open("save_state.txt")
 
@@ -68,6 +69,7 @@ class Button(UITextureButton):
         self.center_y = self.original_position[1]
 
     def on_click(self, event):
+        self.parent.disable()
         self.parent.window.show_view(self.scene)
 
 
@@ -97,10 +99,6 @@ class IntroCutscene(arcade.View):
             font_size=30,
             anchor_x="right",
         )
-
-
-            
-
 
     def on_show_view(self):
         arcade.set_background_color(arcade.color.BLACK)
@@ -245,6 +243,10 @@ class IntroCutscene(arcade.View):
                     self.comic_panel = "done"
 
             case _:
+                # I really could pass this as an argument into gameview but
+                # I really couldn't be bothered at this point
+                global current_level
+                current_level = 1
                 self.window.show_view(GameView())
 
 
@@ -322,9 +324,7 @@ class MenuView(arcade.View):
 
 
 class GameView(arcade.View):
-    """
-    The Game
-    """
+    '''The Game'''
 
     def __init__(self):
         # Call the parent class and set up the window
@@ -355,15 +355,23 @@ class GameView(arcade.View):
         self.launch_line_dots = []
 
     def on_show_view(self):
-        self.setup_level(1)
+        self.setup_level(current_level)
 
 
     def setup_car(self, x, y, car_type="muffin"):
+        '''This function sets up the car
+        Args:
+            x (number) centre x position
+            y (number) centre y position
+            car_type (str) whcih cat'''
+        
         self.car_status = "none"
-        self.car = arcade.Sprite(self.muffin_texture)
-        self.car.center_x = x
-        self.car.center_y = y
-        self.car.scale = 0.7
+        self.car = arcade.Sprite(
+            self.muffin_texture,
+            scale=0.7,
+            center_x=x,
+            center_y=y,
+            )
         self.player.append(self.car)
         self.scene.add_sprite("Player", self.car)
 
@@ -441,15 +449,18 @@ class GameView(arcade.View):
         self.physics_engine.add_sprite_list(
             self.fish, collision_type="fish"
         )
-
-        # Level 1
         
         if level == 1:
             self.cars_left = 5
             self.car_spawn_x = 300
             self.car_spawn_y = 200  
         if level == 2:
-            self.cars_left = 99
+            self.cars_left = 4
+
+        if level == 3:
+            self.car_spawn_y = 500
+            self.cars_left = 4
+
 
         # Spawn player
         self.setup_car(self.car_spawn_x, self.car_spawn_y)
@@ -546,7 +557,9 @@ class GameView(arcade.View):
         if self.fish_left <= 0:
             self.fish_left -= delta_time
             if self.fish_left <= -1:
-                self.setup_level(1)
+                global current_level
+                current_level +=1
+                self.setup_level(current_level)
 
         try:
             self.physics_engine.step()
