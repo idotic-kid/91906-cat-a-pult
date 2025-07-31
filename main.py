@@ -38,7 +38,6 @@ def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
                 )
 
 
-
 class Button(UITextureButton):
     def __init__(self, scene, parent, x = 0, y = 0, texture = None, text = "",):
         super().__init__(x=x, y=y, texture=texture, text=text)
@@ -72,6 +71,190 @@ class Button(UITextureButton):
         self.parent.window.show_view(self.scene)
 
 
+
+class IntroCutscene(arcade.View):
+    def __init__(self):
+        ''' Initialize everything'''
+        super().__init__()
+        
+        self.timer = 0
+        self.comic_panel = 0
+
+        self.comic = arcade.BasicSprite(
+            arcade.load_texture("assets/comic.png"),
+            center_x=1000,
+            center_y=-420,
+            scale=0.65
+        )
+        self.comic_spritelist = arcade.SpriteList()
+        self.comic_spritelist.append(self.comic)
+
+        self.skip_text = arcade.Text(
+            "click anywhere to skip",
+            color=(50, 161, 255),
+            x = (WINDOW_WIDTH-30),
+            y = 30,
+            font_size=30,
+            anchor_x="right",
+        )
+
+
+            
+
+
+    def on_show_view(self):
+        arcade.set_background_color(arcade.color.BLACK)
+    
+    def on_draw(self):
+        self.clear()
+        self.comic_spritelist.draw()
+        #arcade.draw_rect_filled(self.skip_text_rect(0, 0, 0, 0.5))
+        self.skip_text.draw()
+    
+    def on_mouse_release(self, x, y, button, modifiers):
+        self.comic_panel = "done"
+        
+    
+    def on_update(self, delta_time):
+        self.timer += delta_time
+
+
+        # isnt it supposed to be switch case
+        # anyways this is my massive if else for the cutscene
+        # it moves the comic to each panel
+        # self.comic_panel variable refers to which panel is being shown 
+        # the decimal points are just to help me make better timings
+        match self.comic_panel:
+            case 0:
+                if self.timer >=0.5:
+                    self.comic_panel = 1
+
+            case 1:
+                self.comic.scale_x += delta_time/5
+                self.comic.scale_y += delta_time/5
+                self.comic.center_y -= delta_time*250
+                self.comic.center_x += delta_time *100            
+                if self.comic.scale_x >= 0.8:
+                    self.comic_panel = 1.5
+
+            case 1.5:
+                if self.timer >= 2:
+                    self.comic_panel = 2
+                    self.timer = 0
+        
+            case 2:
+                # muffin walking
+                self.comic.center_x -= 12
+
+                if self.comic.center_y >= -640:
+                    self.comic.center_y -= 3
+
+                if self.comic.center_x <= -200:
+                    self.comic_panel = 2.2
+                    self.timer = 0
+            
+            case 2.2:
+                if self.timer >= 0.3:
+                    self.comic_panel = 2.4
+            
+            case 2.4:
+                # cupcake walking
+                self.comic.center_x -= 10
+                if self.comic.center_x <= -1300:
+                    self.comic_panel = 2.6
+            
+            case 2.6:
+
+                # zoom out until it fits panel 3
+                self.comic.scale_x -= delta_time/5
+                self.comic.scale_y -= delta_time/5
+                self.comic.center_y += delta_time*250
+                self.comic.center_x += delta_time*500
+        
+                if self.comic.scale_x <= 0.6:
+                    self.comic_panel = 2.8
+                    self.timer = 0
+
+            case 2.8:
+                if self.timer >= 0.5:
+                    self.comic_panel = 3
+                    self.timer = 0
+
+            case 3:
+                # move down, zoom out
+                self.comic.center_y += 8
+                self.comic.center_x += 0.8
+
+                self.comic.scale_x -= 0.0004
+                self.comic.scale_y -= 0.0004
+        
+                if self.comic.center_y >= 900:
+                    self.comic_panel = 3.5
+                    self.timer = 0
+
+            case 3.5:
+                if self.timer >= 0.5:
+                    self.comic_panel = 4
+                    self.timer = 0
+
+            case 4:
+                self.comic.center_x += 15
+                self.comic.center_y -= 2
+                
+                if self.comic.center_x >= 20:
+                    self.comic_panel = 4.5
+                    self.timer = 0
+            
+            case 4.5:
+                if self.timer >= 0.5:
+                    self.comic_panel = 5
+                    self.timer = 0
+
+            case 5:
+                self.comic.center_x += 15
+                self.comic.center_y += 2
+                
+                if self.comic.center_x >= 750:
+                    self.comic_panel = 5.5
+                    self.timer = 0
+
+            case 5.5:
+                if self.timer >= 0.5:
+                    self.comic_panel = 6
+                    self.timer = 0
+
+            case 6:
+                self.comic.center_x += 10
+                self.comic.center_y += 2
+                if self.comic.center_x >= 1900:
+                    self.comic_panel = 6.3
+
+            case 6.3:
+                # slowly move up
+                self.comic.center_y -= 3
+
+                if self.comic.center_y <= 400:
+                    self.comic_panel = 6.6
+
+            case 6.6:
+                self.comic.scale_x += delta_time/4
+                self.comic.scale_y += delta_time/4
+                self.comic.center_y -= delta_time*100
+                self.comic.center_x += delta_time*600
+                if self.comic.scale_x >= 1:
+                    self.comic_panel = "done"
+
+            case _:
+                self.window.show_view(GameView())
+
+
+
+
+
+
+
+
+
 class MenuView(arcade.View):
     def __init__(self, menu):
         '''Initialise the view (I don't think this is actually necessary)'''
@@ -95,7 +278,7 @@ class MenuView(arcade.View):
 
         if self.current_menu == "title":
             self.new_run_button = Button(
-                MenuView("sigma"),
+                IntroCutscene(),
                 self,
                 self.window.width / 2,
                 self.window.height / 2-75, 
@@ -132,7 +315,6 @@ class MenuView(arcade.View):
 
     def on_update(self, delta_time):
         self.manager.on_update(delta_time)
-        
 
 
 
@@ -441,7 +623,6 @@ class GameView(arcade.View):
             self.claw.va = 30
             self.claw.aa = -1
             self.scene.add_sprite("claw attack", self.claw)
-
 
 
 
