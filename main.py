@@ -11,7 +11,6 @@ WINDOW_TITLE = "Cat-a-pult!"
 TILE_LENGTH = 40
 GRAVITY = 600 #This is a different gravity from self.gravity
 UPGRADES = []
-screen_right_now = "title"
 screen_history = []
 file = open("save_state.txt")
 
@@ -74,8 +73,14 @@ class Button(UITextureButton):
 
 
 class MenuView(arcade.View):
+    def __init__(self, menu):
+        '''Initialise the view (I don't think this is actually necessary)'''
+        super().__init__()
+        self.current_menu = menu
+
+
     def on_show_view(self):
-        """ When first switched to this view run this code yk """
+        '''When first switched to this view run this code yk'''
 
         # Background color duh
         self.window.background_color = arcade.csscolor.BURLYWOOD
@@ -88,9 +93,9 @@ class MenuView(arcade.View):
         self.manager = UIManager()
         self.manager.enable()
 
-        if screen_right_now == "title":
+        if self.current_menu == "title":
             self.new_run_button = Button(
-                GameView(),
+                MenuView("sigma"),
                 self,
                 self.window.width / 2,
                 self.window.height / 2-75, 
@@ -98,13 +103,30 @@ class MenuView(arcade.View):
             )
             self.manager.add(self.new_run_button)
 
+        elif self.current_menu == "sigma":
+
+            self.back_texture = arcade.load_texture("assets/button-back.png")
+            self.l_1_texture = arcade.load_texture("assets/button-level-1.png")
+            self.l_L_texture = arcade.load_texture("assets/button-level-locked.png")
+                
+            self.level_1_button = Button(
+                GameView(),
+                self,
+                self.window.width / 2,
+                self.window.height / 2-75, 
+                arcade.load_texture("assets/button-level-1.png"),
+            )
+            self.manager.add(self.level_1_button)
+
 
     def on_draw(self):
         """ Draw this view """
         self.clear()
 
-        arcade.draw_text("Cat-a-pult!", self.window.width / 2, self.window.height / 2,
-                         arcade.color.WHITE, font_size=50, anchor_x="center")
+        if self.current_menu == "title":
+            arcade.draw_text("Cat-a-pult!",self.window.width / 2,
+                             self.window.height / 2, arcade.color.WHITE,
+                             font_size=50, anchor_x="center")
         
         self.manager.draw()
 
@@ -124,6 +146,7 @@ class GameView(arcade.View):
 
     def __init__(self):
         # Call the parent class and set up the window
+
         super().__init__()
         self.highscore = 0
 
@@ -131,11 +154,6 @@ class GameView(arcade.View):
         self.muffin_texture = arcade.load_texture("assets/muffin.png")
         self.claw_texture = arcade.load_texture("assets/slash.png")
         self.fish_texture = arcade.load_texture("tiles/fish.png")
-        
-        # Button lists
-        self.button_list = arcade.SpriteList(True)
-        self.buttons_hovered = []
-        self.buttons_clicked = []
 
         # car and fish
         self.player = arcade.SpriteList()
@@ -152,14 +170,10 @@ class GameView(arcade.View):
         self.camera = arcade.camera.Camera2D()
         self.camera.position = (WINDOW_WIDTH/2, WINDOW_HEIGHT/2)
 
-
-
-
-
         self.launch_line_dots = []
 
     def on_show_view(self):
-        self.change_scene(True, 1)
+        self.setup_level(1)
 
 
     def setup_car(self, x, y, car_type="muffin"):
@@ -173,14 +187,12 @@ class GameView(arcade.View):
 
 
 
-    # This is an IMPORTANT FUNCTION !!!!!!!!!!!!!!!!!!!!!!!! (i made it)
-    def change_scene(self, is_menu=False, screen_id=1):
+    def setup_level(self, level=1):
         '''
-        Call this function to change the 'level'. Switches to a
+        Call this function to change the level. Switches to a
         different pre-programmed level.
         Arguments:
-            is_menu (bool) I think this one is self-explanatory.
-            screen_id (int) These are the screens for me to code in.
+            level (int) These are the screens for me to code in.
         '''
 
         layer_options = {
@@ -196,122 +208,74 @@ class GameView(arcade.View):
         self.fish_left = 999
         self.launch_line_dots = []
 
-        for i in self.button_list:
-            i.kill()
-
         for i in self.player:
             i.kill()
 
-        self.map_length = 1280
+        self.background_color = (124, 244, 255)
+
+        # Loading textures
+        self.pause_texture = arcade.load_texture("assets/button-pause.png")
+
+        self.wood_textures = []
+        self.wood_textures.append(arcade.load_texture("tiles/wood.png"))
+        self.wood_textures.append(arcade.load_texture("assets/wood_dmg_1.png"))
+        self.wood_textures.append(arcade.load_texture("assets/wood_dmg_0.png"))
+
+
+        # Loading tilemap
+        self.tile_map = arcade.load_tilemap(
+            f"tiles/level-{level}.tmx",
+            layer_options=layer_options,
+        )
         
-        # Menus
-        if is_menu:
-            # Menu 1 screen 1 (level select)
-            if screen_id == 1:
-                self.background_color = arcade.csscolor.BURLYWOOD
+        self.map_length = self.tile_map.width*self.tile_map.tile_width
 
-                self.back_texture = arcade.load_texture("assets/button-back.png")
-                self.l_1_texture = arcade.load_texture("assets/button-level-1.png")
-                self.l_L_texture = arcade.load_texture("assets/button-level-locked.png")
+        # Load spritelists in
+        self.wood = self.tile_map.sprite_lists["bits"]
+        self.ground_sprlist = self.tile_map.sprite_lists["ground"]
+        self.fish = self.tile_map.sprite_lists["fish"]
 
-                #self.back_button = arcade.Sprite(self.back_texture)
-                #self.back_button.center_x = 50
-                #self.back_button.center_y = WINDOW_HEIGHT-50
+        for i in self.wood:
+            i.hp = 3
+            i.type = i.texture
 
-                self.level1_button = arcade.Sprite(self.l_1_texture)
-                self.level1_button.center_x = WINDOW_WIDTH/2
-                self.level1_button.center_y = WINDOW_HEIGHT/2
+        self.fish_left = len(self.fish)
 
-                self.level2_button = arcade.Sprite(self.l_L_texture)
-                self.level2_button.center_x = WINDOW_WIDTH/2
-                self.level2_button.center_y = WINDOW_HEIGHT/2 - 150
+        self.scene = arcade.Scene.from_tilemap(self.tile_map)
 
-                self.level3_button = arcade.Sprite(self.l_L_texture)
-                self.level3_button.center_x = WINDOW_WIDTH/2
-                self.level3_button.center_y = WINDOW_HEIGHT/2 - 300
 
-                #self.button_list.append(self.back_button)
-                self.button_list.append(self.level1_button)
-                self.button_list.append(self.level2_button)
-                self.button_list.append(self.level3_button)
+        # Adding sprites to the physics engine
+        self.physics_engine = arcade.PymunkPhysicsEngine(gravity=(0, -GRAVITY))
 
-            # level win screen
-            if screen_id == 5:
-                pass
+        self.physics_engine.add_sprite_list(
+            self.ground_sprlist,
+            friction=0.5,
+            collision_type="wall",
+            body_type=arcade.PymunkPhysicsEngine.STATIC, elasticity=1
+        )
+        self.physics_engine.add_sprite_list(
+            self.wood, collision_type="bricks", friction=3
+        )
+        self.physics_engine.add_sprite_list(
+            self.fish, collision_type="fish"
+        )
+
+        # Level 1
         
-        # Levels
-        else:            
-            self.background_color = (124, 244, 255)
+        if level == 1:
+            self.cars_left = 5
+            self.car_spawn_x = 300
+            self.car_spawn_y = 200  
+        if level == 2:
+            self.cars_left = 99
 
-            # Loading textures
-            self.pause_texture = arcade.load_texture("assets/button-pause.png")
-            self.pause_button = arcade.Sprite(self.pause_texture)
-
-            self.wood_textures = []
-            self.wood_textures.append(arcade.load_texture("tiles/wood.png"))
-            self.wood_textures.append(arcade.load_texture("assets/wood_dmg_1.png"))
-            self.wood_textures.append(arcade.load_texture("assets/wood_dmg_0.png"))
+        # Spawn player
+        self.setup_car(self.car_spawn_x, self.car_spawn_y)
 
 
-            # Loading tilemap
-            self.tile_map = arcade.load_tilemap(
-                f"tiles/level-{screen_id}.tmx",
-                layer_options=layer_options,
-            )
-            
-            self.map_length = self.tile_map.width*self.tile_map.tile_width
-
-            # Load spritelists in
-            self.wood = self.tile_map.sprite_lists["bits"]
-            self.ground_sprlist = self.tile_map.sprite_lists["ground"]
-            self.fish = self.tile_map.sprite_lists["fish"]
-
-            for i in self.wood:
-                i.hp = 3
-                i.type = i.texture
-
-            self.fish_left = len(self.fish)
-
-            self.scene = arcade.Scene.from_tilemap(self.tile_map)
-
-
-            # Adding sprites to the physics engine
-            self.physics_engine = arcade.PymunkPhysicsEngine(gravity=(0, -GRAVITY))
-
-            self.physics_engine.add_sprite_list(
-                self.ground_sprlist,
-                friction=0.5,
-                collision_type="wall",
-                body_type=arcade.PymunkPhysicsEngine.STATIC, elasticity=1
-            )
-            self.physics_engine.add_sprite_list(
-                self.wood, collision_type="bricks", friction=3
-            )
-            self.physics_engine.add_sprite_list(
-                self.fish, collision_type="fish"
-            )
-
-            # Level 1
-            
-            if screen_id == 1:
-                self.cars_left = 5
-                self.car_spawn_x = 300
-                self.car_spawn_y = 200  
-            if screen_id == 2:
-                self.cars_left = 99
-
-            # Spawn player
-            self.setup_car(self.car_spawn_x, self.car_spawn_y)
-
-            
-
-
-
-
-    
     def on_mouse_motion(self, x, y, dx, dy):
-        # Check if the mouse cursor collides with the button sprite
-        self.buttons_hovered = arcade.get_sprites_at_point((x, y), self.button_list)
+        '''Runs whenever the mouse moves within the window.
+        I have it set to move the cat to the mouse if it's being clicked'''
 
         if self.car_status == "clicked":
             angle_to_catapult = arcade.math.get_angle_radians(x, y, self.car_spawn_x, self.car_spawn_y)
@@ -321,21 +285,13 @@ class GameView(arcade.View):
             self.car.center_y = self.car_spawn_y - math.cos(angle_to_catapult)*distance_to_catapult
 
 
-
-
     def on_mouse_press(self, x, y, button, modifiers):
         '''Does stuff when the mouse pressed'''
         if button == arcade.MOUSE_BUTTON_LEFT:
-            
-            # Check for buttons being clicked
-            self.buttons_clicked = self.buttons_hovered
-
             # Check for player
             if self.car_status == "none" and arcade.get_sprites_at_point((x, y), self.player):
                 self.car_status = "clicked"
 
-        else:
-            pass
 
 
         
@@ -353,24 +309,6 @@ class GameView(arcade.View):
                 
                 #((self.car_spawn_x - self.car.center_x)*1000, (self.car_spawn_y - self.car.center_y)*1000)
                 
-            print(self.buttons_clicked)
-
-            # Button click event scripts
-            try:
-                if self.level1_button in self.buttons_clicked:
-                    for i in self.button_list:
-                        i.kill()
-                    self.change_scene(False, 1)
-
-                if self.level2_button in self.buttons_clicked:
-                    for i in self.button_list:
-                        i.kill()
-                    self.change_scene(False, 2)
-                
-            except:
-                pass
-            self.buttons_clicked = []
-                
 
     def on_draw(self):
         """Render the screen."""
@@ -381,9 +319,6 @@ class GameView(arcade.View):
         if self.emitter:
             for i in self.emitter:
                 i.draw()
-        
-        self.button_list.draw()
-
 
         # Draw the line indicator
         if self.car_status == "clicked":
@@ -405,18 +340,15 @@ class GameView(arcade.View):
             arcade.draw_circle_filled(i[0], i[1], 4, (255, 255, 255))
 
         # Draw our level scene
-        try:
-            self.scene.draw()
-            if self.cars_left > 0:
-                arcade.draw_text(f"cars left {self.cars_left}", 100, 100, font_size=30)
-            else:
-                arcade.draw_text("no cars left to catapult damn you suck at this game", 100, 100, font_size=30)
+        self.scene.draw()
+        if self.cars_left > 0:
+            arcade.draw_text(f"cars left {self.cars_left}", 100, 100, font_size=30)
+        else:
+            arcade.draw_text("no cars left to catapult damn you suck at this game", 100, 100, font_size=30)
 
             # debug hitbox
             #self.scene.draw_hit_boxes()
 
-        except:
-            pass
 
         self.camera.use()
 
@@ -432,7 +364,7 @@ class GameView(arcade.View):
         if self.fish_left <= 0:
             self.fish_left -= delta_time
             if self.fish_left <= -1:
-                self.change_scene(True, 1)
+                self.setup_level(1)
 
         try:
             self.physics_engine.step()
@@ -518,7 +450,7 @@ class GameView(arcade.View):
 def main():
     """Main function"""
     window = arcade.Window(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE, resizable=False)
-    start_view = MenuView()
+    start_view = MenuView("title")
     window.show_view(start_view)
     arcade.run()
 
