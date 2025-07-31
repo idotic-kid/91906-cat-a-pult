@@ -41,10 +41,11 @@ def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
 
 
 class Button(UITextureButton):
-    def __init__(self, scene, x = 0, y = 0, texture = None, text = ""):
+    def __init__(self, scene, parent, x = 0, y = 0, texture = None, text = "",):
         super().__init__(x=x, y=y, texture=texture, text=text)
         self.scene = scene
         self.click_status = "normal"
+        self.parent = parent
 
         self.original_position = (x, y)
         self.original_width = self.width
@@ -68,10 +69,8 @@ class Button(UITextureButton):
         self.center_x = self.original_position[0]
         self.center_y = self.original_position[1]
 
-    def on_release(self):
-        pass
-
-
+    def on_click(self, event):
+        self.parent.window.show_view(self.scene)
 
 
 class MenuView(arcade.View):
@@ -89,15 +88,10 @@ class MenuView(arcade.View):
         self.manager = UIManager()
         self.manager.enable()
 
-
-        # I do think the easiest way to do this is to have one view for all of
-        # the menus together because if I had multiple views I would need to
-        # duplicate all of the button code and that would be redundant and
-        # annoying and difficult to read.
-
         if screen_right_now == "title":
             self.new_run_button = Button(
                 GameView(),
+                self,
                 self.window.width / 2,
                 self.window.height / 2-75, 
                 arcade.load_texture("assets/button-play.png"),
@@ -116,13 +110,8 @@ class MenuView(arcade.View):
 
     def on_update(self, delta_time):
         self.manager.on_update(delta_time)
-        print(self.new_run_button.click_status)
         
 
-    def on_mouse_release(self, x, y, button, modifiers):
-        if self.new_run_button.click_status == "press":
-            self.window.show_view(self.new_run_button.scene)
-    
 
 
 
@@ -130,7 +119,7 @@ class MenuView(arcade.View):
 
 class GameView(arcade.View):
     """
-    Main application class.
+    The Game
     """
 
     def __init__(self):
