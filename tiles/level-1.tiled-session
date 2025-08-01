@@ -25,11 +25,19 @@
             }
         },
         "level-3.tmx": {
-            "scale": 0.5938,
+            "scale": 0.5444,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 621.4213539912429,
-                "y": 385.6517345907713
+                "x": 764.1440117560618,
+                "y": 343.4974283614989
+            }
+        },
+        "level-4.tmx": {
+            "scale": 0.39899999999999997,
+            "selectedLayer": 0,
+            "viewCenter": {
+                "x": 1000.0000000000001,
+                "y": 401.0025062656641
             }
         },
         "nice tiles.tsx": {
@@ -44,6 +52,7 @@
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 40,
     "map.tileWidth": 40,
+    "map.width": 50,
     "openFiles": [
         "level-1.tmx",
         "level-2.tmx",

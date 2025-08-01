@@ -9,7 +9,9 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 WINDOW_TITLE = "Cat-a-pult!"
 TILE_LENGTH = 40
-GRAVITY = 600 #This is a different gravity from self.gravity
+FONT_SIZE = 30
+GRAVITY = 600
+LAST_LEVEL = 3
 UPGRADES = []
 current_level = 0
 screen_history = []
@@ -25,7 +27,7 @@ def get_dist(pos1, pos2):
     outputs the distance as a number'''
     return arcade.math.get_distance(pos1[0], pos1[1], pos2[0], pos2[1])
 
-def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
+def particle_burst(textures,position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
     return make_interval_emitter(
                     center_xy=position,
                     filenames_and_textures=textures,
@@ -40,7 +42,8 @@ def particle_burst(textures, position=(WINDOW_WIDTH/2, WINDOW_HEIGHT/2)):
 
 
 class Button(UITextureButton):
-    def __init__(self, scene, parent, x = 0, y = 0, texture = None, text = "",):
+    def __init__(self, scene, parent, x = 0, y = 0,
+                 texture = None, text = "",):
         super().__init__(x=x, y=y, texture=texture, text=text)
         self.scene = scene
         self.click_status = "normal"
@@ -96,7 +99,7 @@ class IntroCutscene(arcade.View):
             color=(50, 161, 255),
             x = (WINDOW_WIDTH-30),
             y = 30,
-            font_size=30,
+            font_size=FONT_SIZE,
             anchor_x="right",
         )
 
@@ -243,14 +246,12 @@ class IntroCutscene(arcade.View):
                     self.comic_panel = "done"
 
             case _:
-                # I really could pass this as an argument into gameview but
+                # I really could pass this as an argument into gameview 
+                # but
                 # I really couldn't be bothered at this point
                 global current_level
                 current_level = 1
                 self.window.show_view(GameView())
-
-
-
 
 
 
@@ -282,10 +283,18 @@ class MenuView(arcade.View):
             self.new_run_button = Button(
                 IntroCutscene(),
                 self,
-                self.window.width / 2,
-                self.window.height / 2-75, 
+                WINDOW_WIDTH/2,
+                WINDOW_HEIGHT/2 - 150,
                 arcade.load_texture("assets/button-play.png"),
             )
+            self.logo = arcade.BasicSprite(
+                arcade.load_texture("assets/logo.png"),
+                scale=0.3,
+                center_x=WINDOW_WIDTH/2,
+                center_y=WINDOW_HEIGHT/2+50,
+                )
+            self.logo_spritelist = arcade.SpriteList()
+            self.logo_spritelist.append(self.logo)
             self.manager.add(self.new_run_button)
 
         elif self.current_menu == "sigma":
@@ -297,8 +306,8 @@ class MenuView(arcade.View):
             self.level_1_button = Button(
                 GameView(),
                 self,
-                self.window.width / 2,
-                self.window.height / 2-75, 
+                WINDOW_WIDTH/2,
+                WINDOW_HEIGHT/2, 
                 arcade.load_texture("assets/button-level-1.png"),
             )
             self.manager.add(self.level_1_button)
@@ -309,16 +318,12 @@ class MenuView(arcade.View):
         self.clear()
 
         if self.current_menu == "title":
-            arcade.draw_text("Cat-a-pult!",self.window.width / 2,
-                             self.window.height / 2, arcade.color.WHITE,
-                             font_size=50, anchor_x="center")
+            self.logo_spritelist.draw()
         
         self.manager.draw()
 
     def on_update(self, delta_time):
         self.manager.on_update(delta_time)
-
-
 
 
 
@@ -458,12 +463,18 @@ class GameView(arcade.View):
             self.cars_left = 4
 
         if level == 3:
-            self.car_spawn_y = 500
-            self.cars_left = 4
+            self.car_spawn_x = 80
+            self.car_spawn_y = 400
+            self.cars_left = 6
 
 
         # Spawn player
         self.setup_car(self.car_spawn_x, self.car_spawn_y)
+
+        # Text object
+        self.cars_left_text = arcade.Text(
+            f"cars left {self.cars_left}",
+            100, 100, font_size=FONT_SIZE)
 
 
     def on_mouse_motion(self, x, y, dx, dy):
@@ -473,7 +484,6 @@ class GameView(arcade.View):
         if self.car_status == "clicked":
             angle_to_catapult = arcade.math.get_angle_radians(x, y, self.car_spawn_x, self.car_spawn_y)
             distance_to_catapult = arcade.math.clamp(arcade.math.get_distance(x, y, self.car_spawn_x, self.car_spawn_y), 0, 25)
-
             self.car.center_x = self.car_spawn_x - math.sin(angle_to_catapult)*distance_to_catapult
             self.car.center_y = self.car_spawn_y - math.cos(angle_to_catapult)*distance_to_catapult
 
@@ -534,14 +544,7 @@ class GameView(arcade.View):
 
         # Draw our level scene
         self.scene.draw()
-        if self.cars_left > 0:
-            arcade.draw_text(f"cars left {self.cars_left}", 100, 100, font_size=30)
-        else:
-            arcade.draw_text("no cars left to catapult damn you suck at this game", 100, 100, font_size=30)
-
-            # debug hitbox
-            #self.scene.draw_hit_boxes()
-
+        self.cars_left_text.draw()
 
         self.camera.use()
 
