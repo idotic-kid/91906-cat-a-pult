@@ -3,7 +3,7 @@
         "height": 4300,
         "width": 2
     },
-    "activeFile": "level-2.tmx",
+    "activeFile": "level-4.tmx",
     "expandedProjectPaths": [
         "."
     ],
@@ -33,11 +33,11 @@
             }
         },
         "level-4.tmx": {
-            "scale": 0.39899999999999997,
-            "selectedLayer": 0,
+            "scale": 0.341,
+            "selectedLayer": 2,
             "viewCenter": {
-                "x": 1000.0000000000001,
-                "y": 401.0025062656641
+                "x": 982.4046920821113,
+                "y": 357.77126099706743
             }
         },
         "nice tiles.tsx": {
@@ -56,12 +56,16 @@
     "openFiles": [
         "level-1.tmx",
         "level-2.tmx",
+        "level-3.tmx",
+        "level-4.tmx",
         "nice tiles.tsx"
     ],
     "project": "level-1.tiled-project",
     "recentFiles": [
         "level-1.tmx",
+        "level-2.tmx",
+        "level-3.tmx",
         "nice tiles.tsx",
-        "level-2.tmx"
+        "level-4.tmx"
     ]
 }

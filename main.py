@@ -14,7 +14,6 @@ GRAVITY = 350
 LAST_LEVEL = 3
 UPGRADES = []
 CIRCLE_SIZ = 4
-current_level = 0
 screen_history = []
 file = open("save_state.txt")
 
@@ -247,12 +246,7 @@ class IntroCutscene(arcade.View):
                     self.comic_panel = "done"
 
             case _:
-                # I really could pass this as an argument into gameview 
-                # but
-                # I really couldn't be bothered at this point
-                global current_level
-                current_level = 1
-                self.window.show_view(GameView())
+                self.window.show_view(GameView(1))
 
 
 
@@ -312,7 +306,7 @@ class MenuView(arcade.View):
             )
             self.manager.add(self.level_1_button)
 
-        elif self.current_menu == "game over":
+        elif "game over" in self.current_menu:
 
             self.logo = arcade.BasicSprite(
                 arcade.load_texture("assets/u died.png"),
@@ -321,12 +315,14 @@ class MenuView(arcade.View):
                 center_y=WINDOW_HEIGHT/2+50,
                 )
             self.scene.add_sprite("death", self.logo)
+
+            level = int(self.current_menu[0])
             self.restart = Button(
-                GameView(),
+                GameView(level),
                 self,
-                WINDOW_WIDTH/2,
-                WINDOW_HEIGHT/2, 
-                arcade.load_texture("assets/button-level-1.png"),
+                WINDOW_WIDTH/2-30,
+                WINDOW_HEIGHT/2-30, 
+                arcade.load_texture("assets/button-level-restart.png"),
             )
             self.manager.add(self.restart)
 
@@ -357,10 +353,11 @@ class MenuView(arcade.View):
 class GameView(arcade.View):
     '''The Game'''
 
-    def __init__(self):
+    def __init__(self, level):
         # Call the parent class and set up the window
 
         super().__init__()
+        self.level = level
         self.highscore = 0
 
         self.background_color = arcade.csscolor.BURLYWOOD
@@ -387,8 +384,7 @@ class GameView(arcade.View):
 
         self.launch_line_dots = []
 
-    def on_show_view(self):
-        self.setup_level(current_level)
+        self.setup_level(self.level)
 
 
     def setup_car(self, x, y, car_type="muffin"):
@@ -607,10 +603,8 @@ class GameView(arcade.View):
         if self.fish_left <= 0:
             self.fish_left -= delta_time
             if self.fish_left <= -1:
-                global current_level
-                current_level +=1
-                if current_level <= LAST_LEVEL:
-                    self.setup_level(current_level)
+                if self.level <= LAST_LEVEL:
+                    self.setup_level((self.level+1))
                 else:
                     self.window.show_view(MenuView("YOU WON"))
 
@@ -689,7 +683,7 @@ class GameView(arcade.View):
                         self.car = None
                         self.setup_car(self.car_spawn_x, self.car_spawn_y)
                 else:
-                    self.window.show_view(MenuView("game over"))
+                    self.window.show_view(MenuView(f"{self.level}game over"))
         except:
             pass
                 
@@ -705,9 +699,6 @@ class GameView(arcade.View):
             self.claw.va = 30
             self.claw.aa = -1
             self.scene.add_sprite("claw attack", self.claw)
-
-
-
 
 
 def main():
