@@ -12,32 +12,32 @@
             "scale": 0.6321,
             "selectedLayer": 4,
             "viewCenter": {
-                "x": 390.7609555450087,
-                "y": 541.0536307546274
+                "x": 715.0767283657649,
+                "y": 567.9481094763487
             }
         },
         "level-2.tmx": {
             "scale": 0.5361,
-            "selectedLayer": 2,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 798.3585152023875,
-                "y": 654.7285954113039
+                "x": 591.3075918671889,
+                "y": 645.4019772430515
             }
         },
         "level-3.tmx": {
             "scale": 0.5444,
-            "selectedLayer": 2,
+            "selectedLayer": 4,
             "viewCenter": {
-                "x": 764.1440117560618,
-                "y": 343.4974283614989
+                "x": 521.6752387950037,
+                "y": 394.9301983835415
             }
         },
         "level-4.tmx": {
-            "scale": 0.341,
+            "scale": 0.34,
             "selectedLayer": 2,
             "viewCenter": {
-                "x": 982.4046920821113,
-                "y": 357.77126099706743
+                "x": 982.3529411764706,
+                "y": 358.82352941176475
             }
         },
         "nice tiles.tsx": {
@@ -47,7 +47,7 @@
         }
     },
     "last.exportedFilePath": "//wbfp02.westlake.local/shomes/em21236/Documents/13DTP/91906-cat-a-pult/tiles",
-    "last.imagePath": "/Users/idotic_kid/Documents/91906-cat-a-pult/tiles",
+    "last.imagePath": "/Users/idotic_kid/Documents/91906-cat-a-pult/assets",
     "map.lastUsedExportFilter": "JSON map files (*.tmj *.json)",
     "map.lastUsedFormat": "tmx",
     "map.tileHeight": 40,

@@ -487,8 +487,8 @@ class GameView(arcade.View):
             self.cars_left = 4
 
         if level == 3:
-            self.car_spawn_x = 80
-            self.car_spawn_y = 400
+            self.car_spawn_x = 90
+            self.car_spawn_y = 350
             self.cars_left = 7
 
 
@@ -603,8 +603,9 @@ class GameView(arcade.View):
         if self.fish_left <= 0:
             self.fish_left -= delta_time
             if self.fish_left <= -1:
-                if self.level <= LAST_LEVEL:
-                    self.setup_level((self.level+1))
+                if self.level < LAST_LEVEL:
+                    self.level += 1
+                    self.setup_level(self.level)
                 else:
                     self.window.show_view(MenuView("YOU WON"))
 
